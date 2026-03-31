@@ -141,5 +141,45 @@ header {
   font-weight: 800;
   background: linear-gradient(45deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.625rem 1rem;
+  }
+
+  .glass-card {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  header > div:last-child {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  header > div:last-child .btn {
+    flex: 1;
+  }
 }

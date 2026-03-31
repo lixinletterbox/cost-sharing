@@ -6,8 +6,10 @@ import { useLanguage } from '../context/LanguageContext';
 import type { Event, Member, Expense, ExpenseSplit } from '../types';
 import { 
   Plus, Users as UsersIcon, CreditCard, ChevronLeft, 
-  Settings, Trash2, Edit2, AlertCircle, TrendingUp, User as UserIcon 
+  Settings, Trash2, Edit2, AlertCircle, TrendingUp, User as UserIcon,
+  ChevronDown, ChevronUp, Download
 } from 'lucide-react';
+import { exportToExcel } from '../utils/ExportSvc';
 import type { MemberBalance, Settlement } from '../utils/engine';
 import { calculateBalances, suggestSettlements } from '../utils/engine';
 import ExpenseForm from '../components/ExpenseForm';
@@ -29,6 +31,7 @@ export default function EventDetail() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
+  const [expandedExpenses, setExpandedExpenses] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (id) {
@@ -99,12 +102,22 @@ export default function EventDetail() {
           </div>
         </div>
         
-        {activeTab === 'expenses' && (
-          <button className="btn btn-primary" onClick={() => { setEditingExpense(undefined); setShowExpenseForm(true); }}>
-            <Plus size={20} />
-            {t('addExpense')}
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button 
+            className="btn btn-ghost" 
+            onClick={() => exportToExcel({ expenses, splits, members, eventName: event.name, t })}
+            style={{ padding: '0.5rem 1rem' }}
+          >
+            <Download size={18} />
+            <span className="hide-mobile">{t('exportToExcel')}</span>
           </button>
-        )}
+          {activeTab === 'expenses' && (
+            <button className="btn btn-primary" onClick={() => { setEditingExpense(undefined); setShowExpenseForm(true); }}>
+              <Plus size={20} />
+              {t('addExpense')}
+            </button>
+          )}
+        </div>
       </header>
 
       <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '2rem', paddingBottom: '0.5rem' }}>
@@ -136,42 +149,105 @@ export default function EventDetail() {
             ) : (
               expenses.map(expense => {
                 const payer = members.find(m => m.id === expense.payer_member_id);
+                const isExpanded = expandedExpenses[expense.id];
+                const itemSplits = splits.filter(s => s.expense_id === expense.id);
+                const totalWeight = itemSplits.reduce((sum, s) => sum + Number(s.weight), 0);
+
                 return (
-                  <div key={expense.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <div className="badge badge-purple" style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {expense.category.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h4 style={{ margin: 0 }}>{expense.description}</h4>
-                        <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                          Paid by <strong>{payer?.name}</strong> • {new Date(expense.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                      <div style={{ fontWeight: '800', fontSize: '1.125rem' }}>
-                        ${Number(expense.amount).toFixed(2)}
-                      </div>
-                      {(isAdmin || expense.created_by === user?.id) && (
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button 
-                            className="btn btn-ghost" 
-                            style={{ padding: '0.4rem' }}
-                            onClick={() => { setEditingExpense(expense); setShowExpenseForm(true); }}
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button 
-                            className="btn btn-ghost" 
-                            style={{ padding: '0.4rem', color: 'var(--accent)' }}
-                            onClick={() => handleDeleteExpense(expense.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                  <div key={expense.id} className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
+                    <div 
+                      onClick={() => setExpandedExpenses(prev => ({ ...prev, [expense.id]: !prev[expense.id] }))}
+                      style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        padding: '1.25rem',
+                        cursor: 'pointer',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <div className="badge badge-purple" style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {expense.category.charAt(0).toUpperCase()}
                         </div>
-                      )}
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '1rem' }}>{expense.description}</h4>
+                          <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                            {t('paidBy')} <strong>{payer?.name}</strong> • {new Date(expense.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ fontWeight: '800', fontSize: '1.125rem' }}>
+                          ${Number(expense.amount).toFixed(2)}
+                        </div>
+                        <div style={{ color: 'var(--text-dim)' }}>
+                          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </div>
+                      </div>
                     </div>
+
+                    {isExpanded && (
+                      <div style={{ 
+                        padding: '1.25rem', 
+                        paddingTop: '0',
+                        borderTop: '1px solid var(--glass-border)',
+                        background: 'rgba(255, 255, 255, 0.02)'
+                      }}>
+                        <div style={{ padding: '1rem 0' }}>
+                          <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-dim)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Split Breakdown
+                          </p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {itemSplits.map(split => {
+                              const member = members.find(m => m.id === split.member_id);
+                              const share = (Number(expense.amount) / totalWeight) * Number(split.weight);
+                              return (
+                                <div key={split.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontWeight: 500 }}>{member?.name}</span>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                                      w: {split.weight}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontWeight: 600, color: 'var(--secondary)' }}>
+                                    ${share.toFixed(2)}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {(isAdmin || expense.created_by === user?.id) && (
+                          <div style={{ 
+                            display: 'flex', 
+                            gap: '0.5rem', 
+                            justifyContent: 'flex-end',
+                            marginTop: '1rem',
+                            paddingTop: '1rem',
+                            borderTop: '1px solid var(--glass-border)'
+                          }}>
+                            <button 
+                              className="btn btn-ghost" 
+                              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                              onClick={(e) => { e.stopPropagation(); setEditingExpense(expense); setShowExpenseForm(true); }}
+                            >
+                              <Edit2 size={14} />
+                              {t('edit')}
+                            </button>
+                            <button 
+                              className="btn btn-ghost" 
+                              style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', color: 'var(--accent)' }}
+                              onClick={(e) => { e.stopPropagation(); handleDeleteExpense(expense.id); }}
+                            >
+                              <Trash2 size={14} />
+                              {t('delete')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })

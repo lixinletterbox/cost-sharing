@@ -47,6 +47,15 @@ export const translations = {
     admin: 'Admin',
     editExpense: 'Edit Expense',
     deleteExpenseConfirm: 'Are you sure you want to delete this expense?',
+    paidBy: 'Paid by',
+    edit: 'Edit',
+    delete: 'Delete',
+    exportToExcel: 'Export to Excel',
+    
+    // Header Labels (for Excel)
+    sheetExpenses: 'Expenses',
+    sheetSplits: 'Split Breakdown',
+    sheetBalances: 'Balances & Settlements',
     
     // Form
     descriptionLabel: 'Description',
@@ -127,6 +136,15 @@ export const translations = {
     admin: '管理员',
     editExpense: '编辑支出',
     deleteExpenseConfirm: '您确定要删除这笔支出吗？',
+    paidBy: '付款',
+    edit: '编辑',
+    delete: '删除',
+    exportToExcel: '导出至Excel',
+    
+    // Header Labels (for Excel)
+    sheetExpenses: '支出总览',
+    sheetSplits: '分摊详情',
+    sheetBalances: '余额与结算计划',
     
     // Form
     descriptionLabel: '描述',
