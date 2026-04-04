@@ -86,7 +86,8 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
   ];
 
   // Assemble sheet
-  const sheetData = [headerRow1, headerRow2, ...dataRows, [], summaryRow, balanceRow];
+  const titleRow: any[] = [eventName.toUpperCase()];
+  const sheetData = [titleRow, headerRow1, headerRow2, ...dataRows, [], summaryRow, balanceRow];
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
   // Format all numeric amount cells to 2 decimal places
@@ -103,24 +104,38 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
   // === MERGES ===
   const merges: XLSX.Range[] = [];
 
+  // Merge title row across all columns
+  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } });
+
   // Merge fixed col headers (row 1 + row 2) vertically
   for (let c = 0; c < fixedCols; c++) {
-    merges.push({ s: { r: 0, c }, e: { r: 1, c } });
+    merges.push({ s: { r: 1, c }, e: { r: 2, c } });
   }
 
   // Merge member name headers (row 1) horizontally across 2 cols
   for (let i = 0; i < members.length; i++) {
     const startCol = fixedCols + i * 2;
-    merges.push({ s: { r: 0, c: startCol }, e: { r: 0, c: startCol + 1 } });
+    merges.push({ s: { r: 1, c: startCol }, e: { r: 1, c: startCol + 1 } });
   }
 
   ws['!merges'] = merges;
 
   // === STYLING ===
 
+  // Style Title (row 0)
+  for (let c = 0; c < totalCols; c++) {
+    const ref = XLSX.utils.encode_cell({ r: 0, c });
+    if (!ws[ref]) ws[ref] = { v: '', t: 's' };
+    ws[ref].s = {
+      font: { bold: true, sz: 14, color: { rgb: 'FFFFFF' } }, // White text
+      fill: { fgColor: { rgb: '1F3864' } }, // Very dark blue bg (darker than row 1)
+      alignment: { horizontal: 'center', vertical: 'center' }
+    };
+  }
+
   // Style fixed col headers (row 1) — vertically merged, centered, bold, dark blue bg
   for (let c = 0; c < fixedCols; c++) {
-    const cellRef = XLSX.utils.encode_cell({ r: 0, c });
+    const cellRef = XLSX.utils.encode_cell({ r: 1, c });
     if (ws[cellRef]) {
       ws[cellRef].s = {
         alignment: { horizontal: 'center', vertical: 'center' },
@@ -129,7 +144,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
       };
     }
     // Clear row 2 fixed col cells and give them same background
-    const cellRef2 = XLSX.utils.encode_cell({ r: 1, c });
+    const cellRef2 = XLSX.utils.encode_cell({ r: 2, c });
     if (!ws[cellRef2]) ws[cellRef2] = { v: '', t: 's' };
     ws[cellRef2].s = {
       fill: { fgColor: { rgb: '2F5496' } }
@@ -139,7 +154,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
   // Style member name headers (row 1) — merged, centered, bold, dark blue bg
   for (let i = 0; i < members.length; i++) {
     const startCol = fixedCols + i * 2;
-    const cellRef = XLSX.utils.encode_cell({ r: 0, c: startCol });
+    const cellRef = XLSX.utils.encode_cell({ r: 1, c: startCol });
     if (ws[cellRef]) {
       ws[cellRef].s = {
         alignment: { horizontal: 'center' },
@@ -148,14 +163,14 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
       };
     }
     // Style the empty merged-away cell in row 1
-    const emptyRef = XLSX.utils.encode_cell({ r: 0, c: startCol + 1 });
+    const emptyRef = XLSX.utils.encode_cell({ r: 1, c: startCol + 1 });
     if (!ws[emptyRef]) ws[emptyRef] = { v: '', t: 's' };
     ws[emptyRef].s = { fill: { fgColor: { rgb: '2F5496' } } };
   }
 
   // Style header row 2 (sub-headers for members) — bold, medium blue bg
   for (let c = fixedCols; c < totalCols; c++) {
-    const cellRef = XLSX.utils.encode_cell({ r: 1, c });
+    const cellRef = XLSX.utils.encode_cell({ r: 2, c });
     if (ws[cellRef]) {
       ws[cellRef].s = {
         font: { bold: true, color: { rgb: 'FFFFFF' } },
@@ -175,21 +190,22 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
       ws[sumRef].s = {
         font: { bold: true },
         fill: { fgColor: { rgb: 'D6E4F0' } },
-        alignment: { horizontal: 'center' }
+        alignment: { horizontal: 'right' }
       };
     }
     const balRef = XLSX.utils.encode_cell({ r: balanceRowIdx, c });
     if (ws[balRef]) {
+      const isNegative = typeof ws[balRef].v === 'number' && ws[balRef].v < 0;
       ws[balRef].s = {
-        font: { bold: true },
+        font: { bold: true, color: isNegative ? { rgb: 'FF0000' } : undefined },
         fill: { fgColor: { rgb: 'E2EFDA' } },
-        alignment: { horizontal: 'center' }
+        alignment: { horizontal: 'right' }
       };
     }
   }
 
   // Alternating row colors for expense data rows
-  const dataStartRow = 2; // data starts at row index 2 (after 2 header rows)
+  const dataStartRow = 3; // data starts at row index 3 (after title + 2 header rows)
   const dataEndRow = dataStartRow + dataRows.length - 1;
   const evenColor = 'DAEAF6'; // medium blue-grey
   const oddColor = 'FFFFFF';  // white
@@ -248,7 +264,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
         ws[ref].s = {
           font: { bold: true, color: { rgb: 'FFFFFF' } },
           fill: { fgColor: { rgb: '4472C4' } },
-          alignment: { horizontal: 'center' }
+          alignment: { horizontal: 'right' }
         };
       }
     }
@@ -270,7 +286,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
         if (ws[ref]) {
           ws[ref].s = {
             fill: { fgColor: { rgb: bgColor } },
-            alignment: { horizontal: 'center' }
+            alignment: { horizontal: 'right' }
           };
           if (c === 2) ws[ref].z = '0.00'; // format amount
         }
@@ -295,5 +311,6 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
     }
   }
 
-  XLSX.writeFile(wb, `${eventName.replace(/\s+/g, '_')}_Report.xlsx`);
+  const fileName = eventName.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_Report.xlsx';
+  XLSX.writeFile(wb, fileName);
 };
