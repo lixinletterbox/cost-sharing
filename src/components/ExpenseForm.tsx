@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Member, Expense, Category } from '../types';
 import { X, Save, AlertCircle } from 'lucide-react';
+import { getLocalDateString } from '../utils/dateUtils';
 
 interface ExpenseFormProps {
   eventId: string;
@@ -24,7 +25,7 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
   const [amount, setAmount] = useState(editingExpense?.amount?.toString() || '');
   const [category, setCategory] = useState<Category>((editingExpense?.category as Category) || 'other');
   const [payerId, setPayerId] = useState(editingExpense?.payer_member_id || members[0]?.id || '');
-  const [date, setDate] = useState(editingExpense?.date || new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(editingExpense?.date || getLocalDateString());
   const [note, setNote] = useState(editingExpense?.note || '');
   
   const [participants, setParticipants] = useState<Record<string, { selected: boolean; weight: string }>>({});

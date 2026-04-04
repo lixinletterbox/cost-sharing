@@ -14,6 +14,7 @@ import type { MemberBalance, Settlement } from '../utils/engine';
 import { calculateBalances, suggestSettlements } from '../utils/engine';
 import ExpenseForm from '../components/ExpenseForm';
 import MemberForm from '../components/MemberForm';
+import { formatDisplayDate } from '../utils/dateUtils';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -173,7 +174,7 @@ export default function EventDetail() {
                         <div>
                           <h4 style={{ margin: 0, fontSize: '1rem' }}>{expense.description}</h4>
                           <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                            {t('paidBy')} <strong>{payer?.name}</strong> • {new Date(expense.date).toLocaleDateString()}
+                            {t('paidBy')} <strong>{payer?.name}</strong> • {formatDisplayDate(expense.date)}
                           </p>
                         </div>
                       </div>

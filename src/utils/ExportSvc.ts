@@ -1,6 +1,7 @@
 import XLSX from 'xlsx-js-style';
 import type { Expense, ExpenseSplit, Member } from '../types';
 import { calculateBalances, suggestSettlements } from './engine';
+import { formatDisplayDate } from './dateUtils';
 
 interface ExportData {
   expenses: Expense[];
@@ -59,7 +60,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
     });
 
     return [
-      new Date(exp.date).toLocaleDateString(),
+      formatDisplayDate(exp.date),
       t(exp.category as any),
       exp.description,
       Number(amount.toFixed(2)),
