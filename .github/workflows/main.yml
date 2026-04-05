@@ -15,12 +15,13 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          response=$(curl -s \
-            -X GET "${{SUPABASE_URL}}/rest/v1/events?limit=1" \
-            -H "apikey: ${{SUPABASE_ANON_KEY}}" \
-            -H "Authorization: Bearer ${{SUPABASE_ANON_KEY}}")
-          if [ -z "$response" ]; then
-            echo "Error: empty response when pinging." >&2
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/events?limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+          
+          if [ "$status_code" -ne 200 ]; then
+            echo "Error: Ping failed with status code $status_code" >&2
             exit 1
           fi
-          echo "Successful ping: $response."
+          echo "Successful ping! Status code: $status_code"
