@@ -172,7 +172,7 @@ export default function EventDetail() {
                           {expense.category.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h4 style={{ margin: 0, fontSize: '1rem' }}>{expense.description}</h4>
+                           <h4 style={{ margin: 0, fontSize: '1rem' }}>{expense.note || t(expense.category as any)}</h4>
                           <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
                             {t('paidBy')} <strong>{payer?.name}</strong> • {formatDisplayDate(expense.date)}
                           </p>

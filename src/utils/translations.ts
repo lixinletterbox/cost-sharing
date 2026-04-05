@@ -166,6 +166,8 @@ export const translations = {
     // === NEW: Misc ===
     addGuest: 'Add Guest',
     optionalMessage: 'Message (optional)',
+    optional: 'Optional',
+    descriptionPlaceholder: 'What was this for?',
     from: 'From',
   },
   zh: {
@@ -335,6 +337,8 @@ export const translations = {
     // === NEW: Misc ===
     addGuest: '添加访客',
     optionalMessage: '留言（可选）',
+    optional: '可选',
+    descriptionPlaceholder: '这笔款项是关于什么的？',
   }
 };
 

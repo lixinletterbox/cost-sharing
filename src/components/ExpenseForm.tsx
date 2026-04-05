@@ -21,7 +21,6 @@ const CATEGORIES: Category[] = [
 export default function ExpenseForm({ eventId, members, editingExpense, onClose, onRefresh }: ExpenseFormProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [description, setDescription] = useState(editingExpense?.description || '');
   const [amount, setAmount] = useState(editingExpense?.amount?.toString() || '');
   const [category, setCategory] = useState<Category>((editingExpense?.category as Category) || 'other');
   const [payerId, setPayerId] = useState(editingExpense?.payer_member_id || members[0]?.id || '');
@@ -110,7 +109,6 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
         const { error: expError } = await supabase
           .from('expenses')
           .update({
-            description,
             amount: Number(amount),
             category,
             payer_member_id: payerId,
@@ -126,7 +124,6 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
           .from('expenses')
           .insert({
             event_id: eventId,
-            description,
             amount: Number(amount),
             category,
             payer_member_id: payerId,
@@ -177,18 +174,6 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
 
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="input-group" style={{ gridColumn: 'span 2' }}>
-              <label className="input-label">{t('descriptionLabel')}</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="Dinner, Flight, etc." 
-                required 
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
             <div className="input-group">
               <label className="input-label">{t('amount')}</label>
               <input 
@@ -243,11 +228,11 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
             </div>
 
             <div className="input-group" style={{ gridColumn: 'span 2' }}>
-              <label className="input-label">{t('description')} ({t('other')})</label>
-              <textarea 
+              <label className="input-label">{t('descriptionLabel')} ({t('optional')})</label>
+              <input 
+                type="text"
                 className="input-field" 
-                style={{ minHeight: '60px', resize: 'vertical' }}
-                placeholder="Additional notes..." 
+                placeholder={t('descriptionPlaceholder')} 
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               />

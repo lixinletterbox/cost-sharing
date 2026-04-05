@@ -62,7 +62,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
     return [
       formatDisplayDate(exp.date),
       t(exp.category as any),
-      exp.description,
+      exp.note || '',
       Number(amount.toFixed(2)),
       ...memberCols
     ];

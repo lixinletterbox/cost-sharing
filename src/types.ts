@@ -25,7 +25,6 @@ export type Member = {
 export type Expense = {
   id: string;
   event_id: string;
-  description: string;
   amount: number;
   category: string;
   payer_member_id: string;
