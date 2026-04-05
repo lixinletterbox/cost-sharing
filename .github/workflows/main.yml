@@ -17,7 +17,7 @@ jobs:
         run: |
           # Capture both the response and the status code
           response=$(curl -s -w "\n%{http_code}" \
-            "${SUPABASE_URL}/rest/v1/events?limit=1" \
+            "${SUPABASE_URL}/rest/v1/events?select=name&limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
           
