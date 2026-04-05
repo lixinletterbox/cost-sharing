@@ -16,7 +16,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           response=$(curl -s \
-            -X GET "${{SUPABASE_URL}}/rest/v1/events?limit=1" \
+            -X GET "${SUPABASE_URL}/rest/v1/events?limit=1" \
             -H "apikey: ${{SUPABASE_ANON_KEY}}" \
             -H "Authorization: Bearer ${{SUPABASE_ANON_KEY}}")
           if [ -z "$response" ]; then
