@@ -70,7 +70,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
 
   // Summary row
   const summaryRow: (string | number)[] = [
-    '', '', 'Summary', Number(grandTotal.toFixed(2)),
+    '', '', t('summary'), Number(grandTotal.toFixed(2)),
     ...members.flatMap(m => [
       Number(memberPaidTotals[m.id].toFixed(2)),
       Number(memberShareTotals[m.id].toFixed(2))
@@ -79,7 +79,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
 
   // Balance row (paid - share)
   const balanceRow: (string | number)[] = [
-    '', '', 'Balance', '',
+    '', '', t('balance'), '',
     ...members.flatMap(m => {
       const diff = Number((memberPaidTotals[m.id] - memberShareTotals[m.id]).toFixed(2));
       return [diff, ''];
@@ -257,7 +257,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
     }
 
     // Sub-header: From | To | Amount
-    XLSX.utils.sheet_add_aoa(ws, [['From', 'To', 'Amount']], { origin: -1 });
+    XLSX.utils.sheet_add_aoa(ws, [[t('payer'), t('payee'), t('amount')]], { origin: -1 });
     const subHeaderRowIdx = XLSX.utils.decode_range(ws['!ref']!).e.r;
     for (let c = 0; c < 3; c++) {
       const ref = XLSX.utils.encode_cell({ r: subHeaderRowIdx, c });
@@ -265,7 +265,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
         ws[ref].s = {
           font: { bold: true, color: { rgb: 'FFFFFF' } },
           fill: { fgColor: { rgb: '4472C4' } },
-          alignment: { horizontal: 'right' }
+          alignment: { horizontal: 'center' }
         };
       }
     }
