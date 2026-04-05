@@ -37,3 +37,4 @@ jobs:
           
           echo "Successful ping! Status code: $status_code"
           echo "Connected to event: $event_name"
+          echo "$body"
