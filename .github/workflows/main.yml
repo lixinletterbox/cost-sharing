@@ -15,13 +15,25 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" \
+          # Capture both the response and the status code
+          response=$(curl -s -w "\n%{http_code}" \
             "${SUPABASE_URL}/rest/v1/events?limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
           
+          # The status code is on the last line
+          status_code=$(echo "$response" | tail -n 1)
+          # The JSON body is everything except the last line
+          body=$(echo "$response" | head -n -1)
+          
           if [ "$status_code" -ne 200 ]; then
             echo "Error: Ping failed with status code $status_code" >&2
+            echo "Response Body: $body" >&2
             exit 1
           fi
+          
+          # Extract the event name using jq (pre-installed on GitHub runners)
+          event_name=$(echo "$body" | jq -r '.[0].name // "No event found"')
+          
           echo "Successful ping! Status code: $status_code"
+          echo "Connected to event: $event_name"
