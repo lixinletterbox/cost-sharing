@@ -16,9 +16,9 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           response=$(curl -s \
-            -X GET "${SUPABASE_URL}/rest/v1/" \
-            -H "apikey: ${SUPABASE_ANON_KEY}" \
-            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+            -X GET "${{SUPABASE_URL}}/rest/v1/events?limit=1" \
+            -H "apikey: ${{SUPABASE_ANON_KEY}}" \
+            -H "Authorization: Bearer ${{SUPABASE_ANON_KEY}}")
           if [ -z "$response" ]; then
             echo "Error: empty response when pinging." >&2
             exit 1
