@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { exportToExcel } from '../utils/ExportSvc';
 import type { MemberBalance, Settlement } from '../utils/engine';
-import { calculateBalances, suggestSettlements } from '../utils/engine';
+import { calculateBalances, suggestSettlements, calculateIndividualShares } from '../utils/engine';
 import ExpenseForm from '../components/ExpenseForm';
 import MemberForm from '../components/MemberForm';
 import { formatDisplayDate } from '../utils/dateUtils';
@@ -152,7 +152,7 @@ export default function EventDetail() {
                 const payer = members.find(m => m.id === expense.payer_member_id);
                 const isExpanded = expandedExpenses[expense.id];
                 const itemSplits = splits.filter(s => s.expense_id === expense.id);
-                const totalWeight = itemSplits.reduce((sum, s) => sum + Number(s.weight), 0);
+                const individualShares = calculateIndividualShares(expense.id, Number(expense.amount), itemSplits);
 
                 return (
                   <div key={expense.id} className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
@@ -202,7 +202,7 @@ export default function EventDetail() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {itemSplits.map(split => {
                               const member = members.find(m => m.id === split.member_id);
-                              const share = (Number(expense.amount) / totalWeight) * Number(split.weight);
+                              const share = individualShares[split.member_id] || 0;
                               return (
                                 <div key={split.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

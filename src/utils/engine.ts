@@ -17,6 +17,65 @@ export interface Settlement {
 }
 
 /**
+ * Deterministic hash function for consistency.
+ */
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
+/**
+ * Calculates individual shares in cents and adjusts for rounding remainders fairly.
+ */
+export function calculateIndividualShares(
+  expenseId: string,
+  totalAmount: number,
+  splits: { member_id: string; weight: number }[]
+): Record<string, number> {
+  if (splits.length === 0) return {};
+  const totalWeight = splits.reduce((sum, s) => sum + Number(s.weight), 0);
+  if (totalWeight === 0) return {};
+
+  const amountInCents = Math.round(totalAmount * 100);
+  let distributedCents = 0;
+  const sharesInCents: Record<string, number> = {};
+
+  // 1. Initial floor distribution
+  splits.forEach(s => {
+    const share = Math.floor((amountInCents * Number(s.weight)) / totalWeight);
+    sharesInCents[s.member_id] = share;
+    distributedCents += share;
+  });
+
+  // 2. Distribute remaining cents deterministically
+  const remainingCents = amountInCents - distributedCents;
+  if (remainingCents > 0) {
+    // Sort members by hash(expenseId + memberId) to pick who gets the extra cents
+    const sortedMembers = [...splits].sort((a, b) => {
+      const hashA = hashString(expenseId + a.member_id);
+      const hashB = hashString(expenseId + b.member_id);
+      return hashA - hashB || a.member_id.localeCompare(b.member_id);
+    });
+
+    for (let i = 0; i < remainingCents; i++) {
+      const memberId = sortedMembers[i % sortedMembers.length].member_id;
+      sharesInCents[memberId] += 1;
+    }
+  }
+
+  // Convert back to decimal
+  const result: Record<string, number> = {};
+  for (const id in sharesInCents) {
+    result[id] = sharesInCents[id] / 100;
+  }
+  return result;
+}
+
+/**
  * Calculates the total net balance for each member in an event.
  */
 export function calculateBalances(
@@ -43,12 +102,11 @@ export function calculateBalances(
     const itemSplits = splits.filter(s => s.expense_id === exp.id);
     if (itemSplits.length === 0) return;
 
-    const totalWeight = itemSplits.reduce((sum, s) => sum + Number(s.weight), 0);
-    const amountPerWeight = Number(exp.amount) / totalWeight;
-
-    itemSplits.forEach(s => {
-      if (balances[s.member_id]) {
-        balances[s.member_id].share += Number(s.weight) * amountPerWeight;
+    const shares = calculateIndividualShares(exp.id, Number(exp.amount), itemSplits);
+    
+    Object.entries(shares).forEach(([memberId, share]) => {
+      if (balances[memberId]) {
+        balances[memberId].share += share;
       }
     });
   });

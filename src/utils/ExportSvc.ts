@@ -1,6 +1,6 @@
 import XLSX from 'xlsx-js-style';
 import type { Expense, ExpenseSplit, Member } from '../types';
-import { calculateBalances, suggestSettlements } from './engine';
+import { calculateBalances, suggestSettlements, calculateIndividualShares } from './engine';
 import { formatDisplayDate } from './dateUtils';
 
 interface ExportData {
@@ -41,19 +41,16 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
   // Build data rows
   const dataRows = expenses.map(exp => {
     const itemSplits = splits.filter(s => s.expense_id === exp.id);
-    const totalWeight = itemSplits.reduce((sum, s) => sum + Number(s.weight), 0);
     const amount = Number(exp.amount);
     grandTotal += amount;
+
+    const individualShares = calculateIndividualShares(exp.id, amount, itemSplits);
 
     const memberCols = members.flatMap(m => {
       const paid = m.id === exp.payer_member_id ? amount : 0;
       memberPaidTotals[m.id] += paid;
 
-      const split = itemSplits.find(s => s.member_id === m.id);
-      let share = 0;
-      if (split && totalWeight > 0) {
-        share = Number(((amount / totalWeight) * Number(split.weight)).toFixed(2));
-      }
+      const share = individualShares[m.id] || 0;
       memberShareTotals[m.id] += share;
 
       return [paid || '', share || ''];
