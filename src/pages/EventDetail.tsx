@@ -4,8 +4,8 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Event, Member, Expense, ExpenseSplit } from '../types';
-import { 
-  Plus, Users as UsersIcon, CreditCard, ChevronLeft, 
+import {
+  Plus, Users as UsersIcon, CreditCard, ChevronLeft,
   Settings, Trash2, Edit2, AlertCircle, TrendingUp, User as UserIcon,
   ChevronDown, ChevronUp, Download
 } from 'lucide-react';
@@ -26,7 +26,7 @@ export default function EventDetail() {
   const [members, setMembers] = useState<Member[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [splits, setSplits] = useState<ExpenseSplit[]>([]);
-  
+
   const [activeTab, setActiveTab] = useState<'expenses' | 'balances' | 'members'>('expenses');
   const [loading, setLoading] = useState(true);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
@@ -53,7 +53,7 @@ export default function EventDetail() {
       setEvent(eventRes.data);
       setMembers(membersRes.data || []);
       setExpenses(expensesRes.data || []);
-      
+
       const expenseIds = (expensesRes.data || []).map(e => e.id);
       setSplits((splitsRes.data || []).filter(s => expenseIds.includes(s.expense_id)));
     } catch (err) {
@@ -102,10 +102,10 @@ export default function EventDetail() {
             </p>
           </div>
         </div>
-        
+
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button 
-            className="btn btn-ghost" 
+          <button
+            className="btn btn-ghost"
             onClick={() => exportToExcel({ expenses, splits, members, eventName: event.name, t })}
             style={{ padding: '0.5rem 1rem' }}
           >
@@ -127,7 +127,7 @@ export default function EventDetail() {
           { id: 'balances', label: t('balances'), icon: TrendingUp },
           { id: 'members', label: t('memberTab'), icon: UsersIcon }
         ].map(tab => (
-          <button 
+          <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-ghost'}`}
@@ -156,12 +156,12 @@ export default function EventDetail() {
 
                 return (
                   <div key={expense.id} className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
-                    <div 
+                    <div
                       onClick={() => setExpandedExpenses(prev => ({ ...prev, [expense.id]: !prev[expense.id] }))}
-                      style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center', 
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
                         padding: '1.25rem',
                         cursor: 'pointer',
                         userSelect: 'none'
@@ -172,7 +172,7 @@ export default function EventDetail() {
                           {expense.category.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                           <h4 style={{ margin: 0, fontSize: '1rem' }}>{expense.note || t(expense.category as any)}</h4>
+                          <h4 style={{ margin: 0, fontSize: '1rem' }}>{expense.note || t(expense.category as any)}</h4>
                           <p style={{ color: 'var(--text-dim)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
                             {t('paidBy')} <strong>{payer?.name}</strong> • {formatDisplayDate(expense.date)}
                           </p>
@@ -189,8 +189,8 @@ export default function EventDetail() {
                     </div>
 
                     {isExpanded && (
-                      <div style={{ 
-                        padding: '1.25rem', 
+                      <div style={{
+                        padding: '1.25rem',
                         paddingTop: '0',
                         borderTop: '1px solid var(--glass-border)',
                         background: 'rgba(255, 255, 255, 0.02)'
@@ -221,24 +221,24 @@ export default function EventDetail() {
                         </div>
 
                         {(isAdmin || expense.created_by === user?.id) && (
-                          <div style={{ 
-                            display: 'flex', 
-                            gap: '0.5rem', 
+                          <div style={{
+                            display: 'flex',
+                            gap: '0.5rem',
                             justifyContent: 'flex-end',
                             marginTop: '1rem',
                             paddingTop: '1rem',
                             borderTop: '1px solid var(--glass-border)'
                           }}>
-                            <button 
-                              className="btn btn-ghost" 
+                            <button
+                              className="btn btn-ghost"
                               style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
                               onClick={(e) => { e.stopPropagation(); setEditingExpense(expense); setShowExpenseForm(true); }}
                             >
                               <Edit2 size={14} />
                               {t('edit')}
                             </button>
-                            <button 
-                              className="btn btn-ghost" 
+                            <button
+                              className="btn btn-ghost"
                               style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', color: 'var(--accent)' }}
                               onClick={(e) => { e.stopPropagation(); handleDeleteExpense(expense.id); }}
                             >
@@ -262,19 +262,19 @@ export default function EventDetail() {
               <h3 style={{ marginBottom: '1.5rem' }}>{t('individualBalances')}</h3>
               <div className="glass-card" style={{ padding: 0 }}>
                 {balances.map((balance, idx) => (
-                  <div key={balance.memberId} style={{ 
-                    padding: '1.25rem', 
+                  <div key={balance.memberId} style={{
+                    padding: '1.25rem',
                     borderBottom: idx === balances.length - 1 ? 'none' : '1px solid var(--glass-border)',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                   }}>
                     <div>
                       <div style={{ fontWeight: 600 }}>{balance.name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                        Paid: ${balance.paid.toFixed(2)} / {t('category')}: ${balance.share.toFixed(2)}
+                        {t('paid')}: ${balance.paid.toFixed(2)} / {t('share')}: ${balance.share.toFixed(2)}
                       </div>
                     </div>
-                    <div style={{ 
-                      fontWeight: 800, 
+                    <div style={{
+                      fontWeight: 800,
                       color: balance.net > 0 ? 'var(--secondary)' : balance.net < -0.01 ? 'var(--accent)' : 'inherit'
                     }}>
                       {balance.net > 0 ? '+' : ''}${balance.net.toFixed(2)}
@@ -294,8 +294,8 @@ export default function EventDetail() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {settlements.map((s, idx) => (
-                      <div key={idx} style={{ 
-                        display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--bg-deep)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--glass-border)' 
+                      <div key={idx} style={{
+                        display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--bg-deep)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--glass-border)'
                       }}>
                         <div style={{ flex: 1, textAlign: 'right', fontWeight: 600 }}>{s.fromName}</div>
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
@@ -327,8 +327,8 @@ export default function EventDetail() {
             </div>
             <div className="glass-card" style={{ padding: 0 }}>
               {members.map((member, idx) => (
-                <div key={member.id} style={{ 
-                  padding: '1.25rem', 
+                <div key={member.id} style={{
+                  padding: '1.25rem',
                   borderBottom: idx === members.length - 1 ? 'none' : '1px solid var(--glass-border)',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                 }}>
@@ -348,7 +348,7 @@ export default function EventDetail() {
                   </div>
                   {isAdmin && member.profile_id !== user?.id && (
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                       <Settings size={18} style={{ color: 'var(--text-dim)', cursor: 'pointer' }} />
+                      <Settings size={18} style={{ color: 'var(--text-dim)', cursor: 'pointer' }} />
                     </div>
                   )}
                 </div>
@@ -359,9 +359,9 @@ export default function EventDetail() {
       </div>
 
       {showExpenseForm && (
-        <ExpenseForm 
-          eventId={id!} 
-          members={members} 
+        <ExpenseForm
+          eventId={id!}
+          members={members}
           editingExpense={editingExpense}
           onClose={() => { setShowExpenseForm(false); setEditingExpense(undefined); }}
           onRefresh={fetchEventData}
@@ -369,8 +369,8 @@ export default function EventDetail() {
       )}
 
       {showMemberForm && (
-        <MemberForm 
-          eventId={id!} 
+        <MemberForm
+          eventId={id!}
           onClose={() => setShowMemberForm(false)}
           onRefresh={fetchEventData}
         />
