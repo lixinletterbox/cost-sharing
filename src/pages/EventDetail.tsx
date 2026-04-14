@@ -68,7 +68,7 @@ export default function EventDetail() {
   const balances: MemberBalance[] = calculateBalances(expenses, splits, members);
   const settlements: Settlement[] = suggestSettlements(balances);
   const currentUserMember = members.find(m => m.profile_id === user?.id);
-  const isAdmin = currentUserMember?.is_admin || event?.created_by === user?.id;
+  const isAdmin = currentUserMember?.is_admin === true;
 
   const handleDeleteExpense = async (expenseId: string) => {
     if (!window.confirm(t('deleteExpenseConfirm'))) return;
@@ -222,6 +222,7 @@ export default function EventDetail() {
                           </div>
                         </div>
 
+                        {/* Admin can edit/delete any expense; normal user can only edit/delete their own */}
                         {(isAdmin || expense.created_by === user?.id) && (
                           <div style={{
                             display: 'flex',
@@ -239,6 +240,7 @@ export default function EventDetail() {
                               <Edit2 size={14} />
                               {t('edit')}
                             </button>
+                            {/* Only admin can delete any expense; normal user can only delete their own */}
                             <button
                               className="btn btn-ghost"
                               style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', color: 'var(--accent)' }}
