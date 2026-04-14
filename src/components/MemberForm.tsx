@@ -89,7 +89,10 @@ export default function MemberForm({ eventId, onClose, onRefresh }: MemberFormPr
             type="button" 
             className={`btn ${linkMode === 'guest' ? 'btn-primary' : 'btn-ghost'}`} 
             style={{ flex: 1, padding: '0.5rem', fontSize: '0.875rem' }}
-            onClick={() => setLinkMode('guest')}
+            onClick={() => {
+              setLinkMode('guest');
+              setIsAdmin(false);
+            }}
           >
             {t('guest')}
           </button>
@@ -134,7 +137,7 @@ export default function MemberForm({ eventId, onClose, onRefresh }: MemberFormPr
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: linkMode === 'user' ? '1fr 1fr' : '1fr', gap: '1rem' }}>
             <div className="input-group">
               <label className="input-label">{t('defaultWeight')}</label>
               <input 
@@ -147,18 +150,20 @@ export default function MemberForm({ eventId, onClose, onRefresh }: MemberFormPr
               />
             </div>
             
-            <div className="input-group">
-              <label className="input-label">{t('permissions')}</label>
-              <button 
-                type="button"
-                className={`btn ${isAdmin ? 'btn-primary' : 'btn-ghost'}`}
-                style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem', fontSize: '0.875rem' }}
-                onClick={() => setIsAdmin(!isAdmin)}
-              >
-                <Shield size={16} />
-                {isAdmin ? t('admin') : t('normalUser')}
-              </button>
-            </div>
+            {linkMode === 'user' && (
+              <div className="input-group">
+                <label className="input-label">{t('permissions')}</label>
+                <button 
+                  type="button"
+                  className={`btn ${isAdmin ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ width: '100%', justifyContent: 'flex-start', padding: '0.75rem', fontSize: '0.875rem' }}
+                  onClick={() => setIsAdmin(!isAdmin)}
+                >
+                  <Shield size={16} />
+                  {isAdmin ? t('admin') : t('normalUser')}
+                </button>
+              </div>
+            )}
           </div>
 
           {error && (
