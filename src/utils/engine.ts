@@ -41,21 +41,35 @@ export function calculateIndividualShares(
   if (totalWeight === 0) return {};
 
   const amountInCents = Math.round(totalAmount * 100);
-  let distributedCents = 0;
-  const sharesInCents: Record<string, number> = {};
-
-  // 1. Initial floor distribution
-  splits.forEach(s => {
-    const share = Math.floor((amountInCents * Number(s.weight)) / totalWeight);
-    sharesInCents[s.member_id] = share;
-    distributedCents += share;
+  
+  // 1. Calculate base cents and fractional remainders
+  const memberData = splits.map(s => {
+    const exactCents = (amountInCents * Number(s.weight)) / totalWeight;
+    const baseCents = Math.floor(exactCents);
+    const remainder = exactCents - baseCents;
+    return {
+      member_id: s.member_id,
+      baseCents,
+      remainder
+    };
   });
 
-  // 2. Distribute remaining cents deterministically
-  const remainingCents = amountInCents - distributedCents;
+  const distributedBaseCents = memberData.reduce((sum, m) => sum + m.baseCents, 0);
+  const remainingCents = amountInCents - distributedBaseCents;
+  
+  const sharesInCents: Record<string, number> = {};
+  memberData.forEach(m => {
+    sharesInCents[m.member_id] = m.baseCents;
+  });
+
+  // 2. Distribute remaining cents prioritized by remainder (higher fractional cent)
   if (remainingCents > 0) {
-    // Sort members by hash(expenseId + memberId) to pick who gets the extra cents
-    const sortedMembers = [...splits].sort((a, b) => {
+    const sortedMembers = [...memberData].sort((a, b) => {
+      // Primary sort: Remainder (descending)
+      if (Math.abs(a.remainder - b.remainder) > 0.0000001) {
+        return b.remainder - a.remainder;
+      }
+      // Secondary sort: Deterministic hash for "fair" random tie-breaking
       const hashA = hashString(expenseId + a.member_id);
       const hashB = hashString(expenseId + b.member_id);
       return hashA - hashB || a.member_id.localeCompare(b.member_id);
