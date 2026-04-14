@@ -14,6 +14,7 @@ import type { MemberBalance, Settlement } from '../utils/engine';
 import { calculateBalances, suggestSettlements, calculateIndividualShares } from '../utils/engine';
 import ExpenseForm from '../components/ExpenseForm';
 import MemberForm from '../components/MemberForm';
+import MemberEditModal from '../components/MemberEditModal';
 import { formatDisplayDate } from '../utils/dateUtils';
 
 export default function EventDetail() {
@@ -32,6 +33,7 @@ export default function EventDetail() {
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
+  const [editingMember, setEditingMember] = useState<Member | undefined>(undefined);
   const [expandedExpenses, setExpandedExpenses] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -348,7 +350,14 @@ export default function EventDetail() {
                   </div>
                   {isAdmin && member.profile_id !== user?.id && (
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <Settings size={18} style={{ color: 'var(--text-dim)', cursor: 'pointer' }} />
+                      <button
+                        className="btn btn-ghost"
+                        style={{ padding: '0.4rem' }}
+                        onClick={() => setEditingMember(member)}
+                        title="Edit member"
+                      >
+                        <Settings size={18} style={{ color: 'var(--text-dim)' }} />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -372,6 +381,14 @@ export default function EventDetail() {
         <MemberForm
           eventId={id!}
           onClose={() => setShowMemberForm(false)}
+          onRefresh={fetchEventData}
+        />
+      )}
+
+      {editingMember && (
+        <MemberEditModal
+          member={editingMember}
+          onClose={() => setEditingMember(undefined)}
           onRefresh={fetchEventData}
         />
       )}
