@@ -46,6 +46,10 @@ export const translations = {
     loadingEvents: 'Loading events...',
 
     // Event Detail
+    editEvent: 'Edit Event',
+    deleteEvent: 'Delete Event',
+    deleteEventConfirm: 'Are you sure you want to delete this event? This will remove all expenses and members.',
+    eventUpdated: 'Event updated successfully.',
     members: 'members',
     expenses: 'expenses',
     addExpense: 'Add Expense',
@@ -251,6 +255,10 @@ export const translations = {
     loadingEvents: '加载活动中...',
 
     // Event Detail
+    editEvent: '编辑活动',
+    deleteEvent: '删除活动',
+    deleteEventConfirm: '您确定要删除此活动吗？这将删除所有支出和成员。',
+    eventUpdated: '活动更新成功。',
     members: '成员',
     expenses: '支出',
     addExpense: '添加支出',

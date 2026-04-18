@@ -37,6 +37,9 @@ export default function EventDetail() {
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
   const [editingMember, setEditingMember] = useState<Member | undefined>(undefined);
   const [expandedExpenses, setExpandedExpenses] = useState<Record<string, boolean>>({});
+  const [showEditEvent, setShowEditEvent] = useState(false);
+  const [editEventName, setEditEventName] = useState('');
+  const [editEventDesc, setEditEventDesc] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -84,6 +87,44 @@ export default function EventDetail() {
     }
   };
 
+  const handleEditEvent = () => {
+    if (!event) return;
+    setEditEventName(event.name);
+    setEditEventDesc(event.description || '');
+    setShowEditEvent(true);
+  };
+
+  const handleSaveEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!event || !editEventName.trim()) return;
+    try {
+      const { error } = await supabase
+        .from('events')
+        .update({ name: editEventName.trim(), description: editEventDesc.trim() || null })
+        .eq('id', event.id);
+      if (error) throw error;
+      setEvent({ ...event, name: editEventName.trim(), description: editEventDesc.trim() || undefined });
+      setShowEditEvent(false);
+    } catch (err) {
+      console.error('Error updating event:', err);
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!event || !window.confirm(t('deleteEventConfirm'))) return;
+    try {
+      // Delete expenses first (cascades to expense_splits)
+      // This avoids FK violation: expenses.payer_member_id -> event_members
+      await supabase.from('expenses').delete().eq('event_id', event.id);
+      // Now delete the event (cascades to event_members)
+      const { error } = await supabase.from('events').delete().eq('id', event.id);
+      if (error) throw error;
+      navigate('/');
+    } catch (err) {
+      console.error('Error deleting event:', err);
+    }
+  };
+
   if (loading) return <div className="container animate-pulse">{t('processing')}</div>;
   if (!event) return <div className="container">Event not found.</div>;
 
@@ -95,7 +136,19 @@ export default function EventDetail() {
             <ChevronLeft size={20} />
           </button>
           <div>
-            <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{event.name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{event.name}</h1>
+              {isAdmin && (
+                <button
+                  className="btn btn-ghost"
+                  style={{ padding: '0.35rem' }}
+                  onClick={handleEditEvent}
+                  title={t('editEvent')}
+                >
+                  <Edit2 size={16} />
+                </button>
+              )}
+            </div>
             {event.description && (
               <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                 {event.description}
@@ -403,6 +456,56 @@ export default function EventDetail() {
           onClose={() => setEditingMember(undefined)}
           onRefresh={fetchEventData}
         />
+      )}
+
+      {showEditEvent && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+        }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '450px' }}>
+            <h2 style={{ marginBottom: '1.5rem' }}>{t('editEvent')}</h2>
+            <form onSubmit={handleSaveEvent}>
+              <div className="input-group">
+                <label className="input-label">{t('eventName')}</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  required
+                  autoFocus
+                  value={editEventName}
+                  onChange={(e) => setEditEventName(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <label className="input-label">{t('description')}</label>
+                <textarea
+                  className="input-field"
+                  style={{ minHeight: '80px', resize: 'vertical' }}
+                  value={editEventDesc}
+                  onChange={(e) => setEditEventDesc(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setShowEditEvent(false)}>
+                  {t('cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                  {t('saveChanges')}
+                </button>
+              </div>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                style={{ width: '100%', marginTop: '1rem', color: 'var(--accent)', borderColor: 'rgba(217, 119, 6, 0.3)' }}
+                onClick={handleDeleteEvent}
+              >
+                <Trash2 size={16} />
+                {t('deleteEvent')}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

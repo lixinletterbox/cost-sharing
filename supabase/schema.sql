@@ -115,6 +115,7 @@ CREATE POLICY "Users can update their own profile." ON profiles FOR UPDATE USING
 CREATE POLICY "Select events" ON events FOR SELECT USING (created_by = auth.uid() OR is_event_member(id));
 CREATE POLICY "Insert events" ON events FOR INSERT WITH CHECK (auth.uid() = created_by);
 CREATE POLICY "Update events" ON events FOR UPDATE USING (created_by = auth.uid());
+CREATE POLICY "Delete events" ON events FOR DELETE USING (created_by = auth.uid());
 
 -- 3. Event Members Policies
 -- FAST PATH: Always allow users to see their own membership immediately
