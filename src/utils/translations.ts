@@ -14,6 +14,11 @@ export const translations = {
     humanVerification: 'Human Verification',
     captchaError: 'Incorrect verification answer.',
     processing: 'Processing...',
+    forgotPassword: 'Forgot Password?',
+    resetPassword: 'Reset Password',
+    sendResetLink: 'Send Reset Link',
+    resetLinkSent: 'Password reset link sent to your email!',
+    backToLogin: 'Back to Login',
 
     // Navbar
     logout: 'Logout',
@@ -214,6 +219,11 @@ export const translations = {
     humanVerification: '人机验证',
     captchaError: '验证答案不正确。',
     processing: '处理中...',
+    forgotPassword: '忘记密码？',
+    resetPassword: '重置密码',
+    sendResetLink: '发送重置链接',
+    resetLinkSent: '密码重置链接已发送到您的邮箱！',
+    backToLogin: '返回登录',
 
     // Navbar
     logout: '登出',

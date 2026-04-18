@@ -16,6 +16,8 @@ export default function Auth() {
   const [captchaNum2, setCaptchaNum2] = useState(Math.floor(Math.random() * 10) + 1);
   const [userCaptcha, setUserCaptcha] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -33,6 +35,29 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
+
+    // --- Forgot Password Flow ---
+    if (forgotPasswordMode) {
+      if (!email) {
+        setError(t('email') + ' required');
+        setLoading(false);
+        return;
+      }
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/profile',
+        });
+        if (error) throw error;
+        setSuccess(t('resetLinkSent'));
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    // -----------------------------
 
     if (!isLogin && password !== confirmPassword) {
       setError(t('passwordMismatch'));
@@ -85,20 +110,28 @@ export default function Auth() {
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)' }}>
           <button 
             type="button"
-            className={`btn ${isLogin ? 'text-white' : 'text-dim'}`}
-            onClick={() => setIsLogin(true)}
+            className={`btn ${isLogin && !forgotPasswordMode ? 'text-white' : 'text-dim'}`}
+            onClick={() => {
+              setIsLogin(true);
+              setForgotPasswordMode(false);
+              setError(null);
+              setSuccess(null);
+            }}
             style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent' }}
           >
             {t('login')}
           </button>
           <button 
             type="button"
-            className={`btn ${!isLogin ? 'text-white' : 'text-dim'}`}
+            className={`btn ${!isLogin && !forgotPasswordMode ? 'text-white' : 'text-dim'}`}
             onClick={() => {
               setIsLogin(false);
+              setForgotPasswordMode(false);
               setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
               setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
               setUserCaptcha('');
+              setError(null);
+              setSuccess(null);
             }}
             style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent' }}
           >
@@ -107,9 +140,15 @@ export default function Auth() {
         </div>
 
         <form onSubmit={handleAuth}>
+          {forgotPasswordMode && (
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', textAlign: 'center', fontWeight: 600 }}>
+              {t('resetPassword')}
+            </h2>
+          )}
+
           <AnimatePresence mode="wait">
-            {!isLogin && (
-              <motion.div 
+            {!isLogin && !forgotPasswordMode && (
+              <motion.div  
                 initial={{ height: 0, opacity: 0 }} 
                 animate={{ height: 'auto', opacity: 1 }} 
                 exit={{ height: 0, opacity: 0 }}
@@ -148,24 +187,48 @@ export default function Auth() {
             </div>
           </div>
 
-          <div className="input-group">
-            <label className="input-label">{t('password')}</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
-              <input 
-                type="password" 
-                className="input-field" 
-                style={{ paddingLeft: '2.5rem' }} 
-                placeholder="••••••••" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
+          <AnimatePresence>
+            {!forgotPasswordMode && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }} 
+                animate={{ height: 'auto', opacity: 1 }} 
+                exit={{ height: 0, opacity: 0 }}
+                className="input-group"
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="input-label" style={{ marginBottom: 0 }}>{t('password')}</label>
+                  {isLogin && (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setForgotPasswordMode(true);
+                        setError(null);
+                        setSuccess(null);
+                      }}
+                      style={{ background: 'none', border: 'none', color: 'var(--secondary)', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}
+                    >
+                      {t('forgotPassword')}
+                    </button>
+                  )}
+                </div>
+                <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+                  <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
+                  <input 
+                    type="password" 
+                    className="input-field" 
+                    style={{ paddingLeft: '2.5rem' }} 
+                    placeholder="••••••••" 
+                    required={!forgotPasswordMode} 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <AnimatePresence>
-            {!isLogin && (
+            {!isLogin && !forgotPasswordMode && (
               <motion.div 
                 initial={{ height: 0, opacity: 0 }} 
                 animate={{ height: 'auto', opacity: 1 }} 
@@ -190,7 +253,7 @@ export default function Auth() {
           </AnimatePresence>
 
           <AnimatePresence>
-            {!isLogin && (
+            {!isLogin && !forgotPasswordMode && (
               <motion.div 
                 initial={{ height: 0, opacity: 0 }} 
                 animate={{ height: 'auto', opacity: 1 }} 
@@ -202,7 +265,7 @@ export default function Auth() {
                   type="number" 
                   className="input-field" 
                   placeholder="0" 
-                  required={!isLogin} 
+                  required={!isLogin && !forgotPasswordMode} 
                   value={userCaptcha}
                   onChange={(e) => setUserCaptcha(e.target.value)}
                 />
@@ -211,11 +274,27 @@ export default function Auth() {
           </AnimatePresence>
 
           {error && <p style={{ color: 'var(--accent)', fontSize: '0.875rem', marginBottom: '1rem' }}>{error}</p>}
+          {success && <p style={{ color: '#34d399', fontSize: '0.875rem', marginBottom: '1rem', padding: '0.5rem', background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.2)', borderRadius: '0.5rem' }}>{success}</p>}
 
-          <button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? t('processing') : isLogin ? t('signIn') : t('createAccount')}
-            {isLogin ? <LogIn size={18} /> : <UserPlus size={18} />}
+          <button className="btn btn-primary" style={{ width: '100%', marginBottom: forgotPasswordMode ? '1rem' : '0' }} disabled={loading}>
+            {loading ? t('processing') : forgotPasswordMode ? t('sendResetLink') : isLogin ? t('signIn') : t('createAccount')}
+            {!loading && !forgotPasswordMode && (isLogin ? <LogIn size={18} /> : <UserPlus size={18} />)}
           </button>
+          
+          {forgotPasswordMode && (
+            <button 
+              type="button"
+              className="btn btn-ghost"
+              style={{ width: '100%' }}
+              onClick={() => {
+                setForgotPasswordMode(false);
+                setError(null);
+                setSuccess(null);
+              }}
+            >
+              {t('backToLogin')}
+            </button>
+          )}
         </form>
       </div>
     </div>
