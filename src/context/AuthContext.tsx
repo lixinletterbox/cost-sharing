@@ -32,13 +32,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {
         setProfile(null);
         setLoading(false);
+      }
+
+      if (event === 'PASSWORD_RECOVERY') {
+        // Hard redirect to bypass React Router wiping the hash before auth can initialize fully
+        window.location.href = '/profile';
       }
     });
 
