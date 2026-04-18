@@ -17,8 +17,16 @@ export const translations = {
 
     // Navbar
     logout: 'Logout',
+    profile: 'Profile',
 
-    // Dashboard
+    // Profile Settings
+    profileSettings: 'Profile Settings',
+    changePassword: 'Change Password',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
+    updatePassword: 'Update Password',
+    passwordUpdated: 'Password updated successfully.',
+    updating: 'Updating...',
     tripsAndEvents: 'Your Trips & Events',
     manageExpenses: 'Manage your group expenses effortlessly.',
     newEvent: 'New Event',
@@ -209,8 +217,16 @@ export const translations = {
 
     // Navbar
     logout: '登出',
+    profile: '个人资料',
 
-    // Dashboard
+    // Profile Settings
+    profileSettings: '个人资料设置',
+    changePassword: '修改密码',
+    newPassword: '新密码',
+    confirmNewPassword: '确认新密码',
+    updatePassword: '更新密码',
+    passwordUpdated: '密码更新成功。',
+    updating: '更新中...',
     tripsAndEvents: '您的旅行与活动',
     manageExpenses: '轻松管理您的团队支出。',
     newEvent: '新活动',

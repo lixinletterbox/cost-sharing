@@ -40,10 +40,10 @@ export default function Navbar() {
 
           {user && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-dim)' }}>
+              <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', textDecoration: 'none', transition: 'opacity 0.2s' }} className="hover-opacity">
                 <User size={18} />
                 <span style={{ fontSize: '0.875rem' }}>{profile?.full_name || user.email}</span>
-              </div>
+              </Link>
               
               <button 
                 onClick={handleSignOut} 
