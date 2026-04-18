@@ -45,9 +45,7 @@ export default function Auth() {
         return;
       }
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/profile',
-        });
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
         setSuccess(t('resetLinkSent'));
       } catch (err: any) {
