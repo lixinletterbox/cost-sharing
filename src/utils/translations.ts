@@ -144,6 +144,10 @@ export const translations = {
     declineLink: 'Decline',
     linkAccepted: 'Guest linked to your account!',
     linkDeclined: 'Link declined.',
+    searchByEmail: 'Search by email',
+    linkToUser: 'Link to registered user',
+    useRegisteredName: 'Use user\'s full name',
+    keepGuestName: 'Keep guest name',
 
     // === NEW: Alias ===
     alias: 'Alias',
@@ -319,6 +323,10 @@ export const translations = {
     declineLink: '拒绝',
     linkAccepted: '访客已关联到您的账户！',
     linkDeclined: '关联已拒绝。',
+    searchByEmail: '按邮箱搜索',
+    linkToUser: '关联到注册用户',
+    useRegisteredName: '使用用户真实姓名',
+    keepGuestName: '保留访客名称',
 
     // === NEW: Alias ===
     alias: '别名',
