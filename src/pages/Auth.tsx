@@ -12,10 +12,22 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [captchaNum1, setCaptchaNum1] = useState(Math.floor(Math.random() * 10) + 1);
+  const [captchaNum2, setCaptchaNum2] = useState(Math.floor(Math.random() * 10) + 1);
+  const [userCaptcha, setUserCaptcha] = useState('');
   const [error, setError] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  const isPasswordStrong = (pwd: string) => {
+    const minLength = 8;
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasLower = /[a-z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(pwd);
+    return pwd.length >= minLength && hasUpper && hasLower && hasNumber && hasSpecial;
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +37,22 @@ export default function Auth() {
     if (!isLogin && password !== confirmPassword) {
       setError(t('passwordMismatch'));
       setLoading(false);
+      return;
+    }
+
+    if (!isLogin && !isPasswordStrong(password)) {
+      setError(t('passwordTooWeak'));
+      setLoading(false);
+      return;
+    }
+
+    if (!isLogin && parseInt(userCaptcha) !== (captchaNum1 + captchaNum2)) {
+      setError(t('captchaError'));
+      setLoading(false);
+      // Generate new captcha on fail
+      setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
+      setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
+      setUserCaptcha('');
       return;
     }
 
@@ -66,7 +94,12 @@ export default function Auth() {
           <button 
             type="button"
             className={`btn ${!isLogin ? 'text-white' : 'text-dim'}`}
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setIsLogin(false);
+              setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
+              setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
+              setUserCaptcha('');
+            }}
             style={{ flex: 1, padding: '1rem', border: 'none', background: 'transparent' }}
           >
             {t('signup')}
@@ -152,6 +185,27 @@ export default function Auth() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
                 </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {!isLogin && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }} 
+                animate={{ height: 'auto', opacity: 1 }} 
+                exit={{ height: 0, opacity: 0 }}
+                className="input-group"
+              >
+                <label className="input-label">{t('humanVerification')}: {captchaNum1} + {captchaNum2} = ?</label>
+                <input 
+                  type="number" 
+                  className="input-field" 
+                  placeholder="0" 
+                  required={!isLogin} 
+                  value={userCaptcha}
+                  onChange={(e) => setUserCaptcha(e.target.value)}
+                />
               </motion.div>
             )}
           </AnimatePresence>

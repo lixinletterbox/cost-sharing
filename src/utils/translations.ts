@@ -10,6 +10,9 @@ export const translations = {
     signIn: 'Sign In',
     createAccount: 'Create Account',
     passwordMismatch: 'Passwords do not match.',
+    passwordTooWeak: 'Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters.',
+    humanVerification: 'Human Verification',
+    captchaError: 'Incorrect verification answer.',
     processing: 'Processing...',
 
     // Navbar
@@ -199,6 +202,9 @@ export const translations = {
     signIn: '登录',
     createAccount: '创建账户',
     passwordMismatch: '两次输入的密码不一致。',
+    passwordTooWeak: '密码必须至少包含8个字符，并包含大写字母、小写字母、数字和特殊字符。',
+    humanVerification: '人机验证',
+    captchaError: '验证答案不正确。',
     processing: '处理中...',
 
     // Navbar
