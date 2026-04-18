@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
-import { supabase } from './lib/supabase';
 import Navbar from './components/Navbar';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import EventDetail from './pages/EventDetail';
 import ContactUs from './pages/ContactUs';
 import Profile from './pages/Profile';
+import ResetPassword from './pages/ResetPassword';
 
 
 
@@ -61,6 +61,7 @@ function App() {
                   } 
                 />
                 <Route path="/contact" element={<ContactUs />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               </Routes>
             </main>
           </div>
