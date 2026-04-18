@@ -56,12 +56,7 @@ export default function MemberEditModal({ member, onClose, onRefresh }: MemberEd
     }
   };
 
-  const handleLinkUser = (profile: Profile) => {
-    setFoundProfile(profile);
-    if (useRegisteredName) {
-      setName(profile.full_name);
-    }
-  };
+
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
