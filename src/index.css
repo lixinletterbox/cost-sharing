@@ -1,21 +1,23 @@
 :root {
-  --bg-deep: #0f172a;
-  --bg-card: rgba(30, 41, 59, 0.7);
-  --primary: #8b5cf6;
-  --primary-hover: #7c3aed;
-  --secondary: #06b6d4;
-  --accent: #f43f5e;
-  --text-main: #f8fafc;
-  --text-dim: #94a3b8;
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(255, 255, 255, 0.05);
+  --bg-deep: #031323; /* Deep ocean blue */
+  --bg-card: rgba(14, 43, 76, 0.65);
+  --primary: #D4AF37; /* Golden */
+  --primary-hover: #F2CA52;
+  --secondary: #48B6DF; /* Light sea blue */
+  --accent: #D97706; /* Earthy yellow/orange */
+  --text-main: #F4F7FA;
+  --text-dim: #A6BFD1;
+  --glass-border: rgba(212, 175, 55, 0.15); /* Hint of gold */
+  --glass-bg: rgba(212, 175, 55, 0.05);
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
@@ -24,8 +26,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.15) 0, transparent 50%);
+    radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.12) 0, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(72, 182, 223, 0.15) 0, transparent 50%);
 }
 
 /* Animations */
@@ -137,8 +139,10 @@ header {
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   background: linear-gradient(45deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   background-clip: text;

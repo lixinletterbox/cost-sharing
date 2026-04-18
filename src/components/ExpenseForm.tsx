@@ -3,7 +3,8 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Member, Expense, Category } from '../types';
-import { X, Save, AlertCircle } from 'lucide-react';
+import { X, Save, AlertCircle, Plane, Hotel, Car, Fuel, CircleParking, Utensils, ShoppingBasket, Ticket, MoreHorizontal } from 'lucide-react';
+
 import { getLocalDateString } from '../utils/dateUtils';
 
 interface ExpenseFormProps {
@@ -189,19 +190,31 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
 
             <div className="input-group">
               <label className="input-label">{t('category')}</label>
-              <select 
-                className="input-field" 
-                style={{ appearance: 'none' }}
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Category)}
-              >
-                {CATEGORIES.map(c => (
-                  <option key={c} value={c}>
-                    {/* @ts-ignore */}
-                    {t(c)}
-                  </option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ color: 'var(--primary-hover)' }}>
+                  {category === 'flight' && <Plane size={20} />}
+                  {category === 'hotel' && <Hotel size={20} />}
+                  {category === 'rental car' && <Car size={20} />}
+                  {category === 'gas' && <Fuel size={20} />}
+                  {category === 'parking' && <CircleParking size={20} />}
+                  {category === 'restaurant' && <Utensils size={20} />}
+                  {category === 'grocery' && <ShoppingBasket size={20} />}
+                  {category === 'ticket' && <Ticket size={20} />}
+                  {category === 'other' && <MoreHorizontal size={20} />}
+                </div>
+                <select 
+                  className="input-field" 
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as Category)}
+                >
+                  {CATEGORIES.map(c => (
+                    <option key={c} value={c}>
+                      {/* @ts-ignore */}
+                      {t(c)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="input-group">

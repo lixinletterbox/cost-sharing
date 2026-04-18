@@ -7,8 +7,10 @@ import type { Event, Member, Expense, ExpenseSplit } from '../types';
 import {
   Plus, Users as UsersIcon, CreditCard, ChevronLeft,
   Settings, Trash2, Edit2, AlertCircle, TrendingUp, User as UserIcon,
-  ChevronDown, ChevronUp, Download
+  ChevronDown, ChevronUp, Download,
+  Plane, Hotel, Car, Fuel, CircleParking, Utensils, ShoppingBasket, Ticket, MoreHorizontal
 } from 'lucide-react';
+
 import { exportToExcel } from '../utils/ExportSvc';
 import type { MemberBalance, Settlement } from '../utils/engine';
 import { calculateBalances, suggestSettlements, calculateIndividualShares } from '../utils/engine';
@@ -170,8 +172,16 @@ export default function EventDetail() {
                       }}
                     >
                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <div className="badge badge-purple" style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          {expense.category.charAt(0).toUpperCase()}
+                        <div className="badge badge-purple" style={{ width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--primary-hover)' }}>
+                          {expense.category === 'flight' && <Plane size={20} />}
+                          {expense.category === 'hotel' && <Hotel size={20} />}
+                          {expense.category === 'rental car' && <Car size={20} />}
+                          {expense.category === 'gas' && <Fuel size={20} />}
+                          {expense.category === 'parking' && <CircleParking size={20} />}
+                          {expense.category === 'restaurant' && <Utensils size={20} />}
+                          {expense.category === 'grocery' && <ShoppingBasket size={20} />}
+                          {expense.category === 'ticket' && <Ticket size={20} />}
+                          {expense.category === 'other' && <MoreHorizontal size={20} />}
                         </div>
                         <div>
                           <h4 style={{ margin: 0, fontSize: '1rem' }}>{expense.note || t(expense.category as any)}</h4>
