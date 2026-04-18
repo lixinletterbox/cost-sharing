@@ -18,7 +18,7 @@ export default function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
-  
+
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -45,7 +45,9 @@ export default function Auth() {
         return;
       }
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/profile',
+        });
         if (error) throw error;
         setSuccess(t('resetLinkSent'));
       } catch (err: any) {
@@ -85,8 +87,8 @@ export default function Auth() {
         if (error) throw error;
         navigate('/');
       } else {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
+        const { error } = await supabase.auth.signUp({
+          email,
           password,
           options: {
             data: { full_name: fullName }
@@ -106,7 +108,7 @@ export default function Auth() {
     <div className="animate-fade" style={{ maxWidth: '400px', margin: '4rem auto' }}>
       <div className="glass-card">
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--glass-border)' }}>
-          <button 
+          <button
             type="button"
             className={`btn ${isLogin && !forgotPasswordMode ? 'text-white' : 'text-dim'}`}
             onClick={() => {
@@ -119,7 +121,7 @@ export default function Auth() {
           >
             {t('login')}
           </button>
-          <button 
+          <button
             type="button"
             className={`btn ${!isLogin && !forgotPasswordMode ? 'text-white' : 'text-dim'}`}
             onClick={() => {
@@ -146,21 +148,21 @@ export default function Auth() {
 
           <AnimatePresence mode="wait">
             {!isLogin && !forgotPasswordMode && (
-              <motion.div  
-                initial={{ height: 0, opacity: 0 }} 
-                animate={{ height: 'auto', opacity: 1 }} 
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 className="input-group"
               >
                 <label className="input-label">{t('fullName')}</label>
                 <div style={{ position: 'relative' }}>
                   <UserIcon size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    style={{ paddingLeft: '2.5rem' }} 
-                    placeholder="John Doe" 
-                    required={!isLogin} 
+                  <input
+                    type="text"
+                    className="input-field"
+                    style={{ paddingLeft: '2.5rem' }}
+                    placeholder="John Doe"
+                    required={!isLogin}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                   />
@@ -173,12 +175,12 @@ export default function Auth() {
             <label className="input-label">{t('email')}</label>
             <div style={{ position: 'relative' }}>
               <Mail size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
-              <input 
-                type="email" 
-                className="input-field" 
-                style={{ paddingLeft: '2.5rem' }} 
-                placeholder="name@email.com" 
-                required 
+              <input
+                type="email"
+                className="input-field"
+                style={{ paddingLeft: '2.5rem' }}
+                placeholder="name@email.com"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -187,17 +189,17 @@ export default function Auth() {
 
           <AnimatePresence>
             {!forgotPasswordMode && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }} 
-                animate={{ height: 'auto', opacity: 1 }} 
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 className="input-group"
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label className="input-label" style={{ marginBottom: 0 }}>{t('password')}</label>
                   {isLogin && (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => {
                         setForgotPasswordMode(true);
                         setError(null);
@@ -211,12 +213,12 @@ export default function Auth() {
                 </div>
                 <div style={{ position: 'relative', marginTop: '0.5rem' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
-                  <input 
-                    type="password" 
-                    className="input-field" 
-                    style={{ paddingLeft: '2.5rem' }} 
-                    placeholder="••••••••" 
-                    required={!forgotPasswordMode} 
+                  <input
+                    type="password"
+                    className="input-field"
+                    style={{ paddingLeft: '2.5rem' }}
+                    placeholder="••••••••"
+                    required={!forgotPasswordMode}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -227,21 +229,21 @@ export default function Auth() {
 
           <AnimatePresence>
             {!isLogin && !forgotPasswordMode && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }} 
-                animate={{ height: 'auto', opacity: 1 }} 
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 className="input-group"
               >
                 <label className="input-label">{t('confirmPassword')}</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
-                  <input 
-                    type="password" 
-                    className="input-field" 
-                    style={{ paddingLeft: '2.5rem' }} 
-                    placeholder="••••••••" 
-                    required={!isLogin} 
+                  <input
+                    type="password"
+                    className="input-field"
+                    style={{ paddingLeft: '2.5rem' }}
+                    placeholder="••••••••"
+                    required={!isLogin}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
@@ -252,18 +254,18 @@ export default function Auth() {
 
           <AnimatePresence>
             {!isLogin && !forgotPasswordMode && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }} 
-                animate={{ height: 'auto', opacity: 1 }} 
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 className="input-group"
               >
                 <label className="input-label">{t('humanVerification')}: {captchaNum1} + {captchaNum2} = ?</label>
-                <input 
-                  type="number" 
-                  className="input-field" 
-                  placeholder="0" 
-                  required={!isLogin && !forgotPasswordMode} 
+                <input
+                  type="number"
+                  className="input-field"
+                  placeholder="0"
+                  required={!isLogin && !forgotPasswordMode}
                   value={userCaptcha}
                   onChange={(e) => setUserCaptcha(e.target.value)}
                 />
@@ -278,9 +280,9 @@ export default function Auth() {
             {loading ? t('processing') : forgotPasswordMode ? t('sendResetLink') : isLogin ? t('signIn') : t('createAccount')}
             {!loading && !forgotPasswordMode && (isLogin ? <LogIn size={18} /> : <UserPlus size={18} />)}
           </button>
-          
+
           {forgotPasswordMode && (
-            <button 
+            <button
               type="button"
               className="btn btn-ghost"
               style={{ width: '100%' }}

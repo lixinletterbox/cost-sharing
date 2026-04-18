@@ -10,28 +10,7 @@ import EventDetail from './pages/EventDetail';
 import ContactUs from './pages/ContactUs';
 import Profile from './pages/Profile';
 
-const AuthRedirectHandler = () => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Intercept PASSWORD_RECOVERY event securely here to instantly route to /profile
-    // independent of the url callback string format.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        navigate('/profile');
-      }
-    });
 
-    // Fallback manual checks for hash
-    if (window.location.hash.includes('type=recovery')) {
-      navigate('/profile');
-    }
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  return null;
-};
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -52,7 +31,6 @@ function App() {
     <LanguageProvider>
       <AuthProvider>
         <BrowserRouter>
-          <AuthRedirectHandler />
           <div className="min-h-screen">
             <Navbar />
             <main className="container">
