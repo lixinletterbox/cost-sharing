@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import EventDetail from './pages/EventDetail';
+import ContactUs from './pages/ContactUs';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -47,6 +48,7 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                <Route path="/contact" element={<ContactUs />} />
               </Routes>
             </main>
           </div>

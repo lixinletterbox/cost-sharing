@@ -25,6 +25,10 @@ export default function Navbar() {
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <Link to="/contact" className="btn btn-ghost" style={{ textDecoration: 'none', padding: '0.4rem 0.75rem', fontSize: '0.875rem' }}>
+            {t('contactUs')}
+          </Link>
+          
           <button 
             onClick={toggleLanguage} 
             className="btn btn-ghost" 

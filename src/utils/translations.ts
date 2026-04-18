@@ -177,6 +177,16 @@ export const translations = {
     optional: 'Optional',
     descriptionPlaceholder: 'What was this for?',
     from: 'From',
+
+    // === NEW: Contact Us ===
+    contactUs: 'Contact Us',
+    contactTitle: 'Get in Touch',
+    contactDesc: 'Have a question or feedback? We\'d love to hear from you.',
+    name: 'Name',
+    message: 'Message',
+    sendMessage: 'Send Message',
+    messageSent: 'Message Sent Successfully!',
+    messageError: 'Failed to send message. Please try again.',
   },
   zh: {
     // Auth
@@ -355,6 +365,16 @@ export const translations = {
     optionalMessage: '留言（可选）',
     optional: '可选',
     descriptionPlaceholder: '这笔款项是关于什么的？',
+
+    // === NEW: Contact Us ===
+    contactUs: '联系我们',
+    contactTitle: '联系我们',
+    contactDesc: '有什么问题或反馈吗？我们很乐意听取您的意见。',
+    name: '姓名',
+    message: '信息',
+    sendMessage: '发送信息',
+    messageSent: '留言发送成功！',
+    messageError: '留言发送失败，请重试。',
   }
 };
 
