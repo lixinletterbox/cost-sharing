@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import type { Member } from '../types';
-import { X, Shield, AlertCircle, Save, User as UserIcon, Search, Check, Loader } from 'lucide-react';
+import { X, Shield, AlertCircle, Save, User as UserIcon, Search, Check, Loader, Mail } from 'lucide-react';
 import type { Profile } from '../types';
 
 interface MemberEditModalProps {
@@ -18,6 +18,30 @@ export default function MemberEditModal({ member, onClose, onRefresh }: MemberEd
   const [isAdmin, setIsAdmin] = useState(member.is_admin);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (member.profile_id) {
+      const fetchEmail = async () => {
+        setProfileLoading(true);
+        try {
+          const { data, error: profileErr } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('id', member.profile_id)
+            .single();
+          if (profileErr) throw profileErr;
+          if (data) setRegisteredEmail(data.email);
+        } catch (err) {
+          console.error('Error fetching registered user email:', err);
+        } finally {
+          setProfileLoading(false);
+        }
+      };
+      fetchEmail();
+    }
+  }, [member.profile_id]);
 
   // Guest linking state
   const [searchEmail, setSearchEmail] = useState('');
@@ -116,8 +140,18 @@ export default function MemberEditModal({ member, onClose, onRefresh }: MemberEd
           </div>
           <div>
             <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{member.name}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-              {member.profile_id ? t('registeredUser') : t('guest')}
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {member.profile_id ? (
+                <>
+                  {t('registeredUser')}
+                  {registeredEmail && (
+                    <>
+                      <Mail size={12} style={{ opacity: 0.6 }} />
+                      <span style={{ opacity: 0.8 }}>{registeredEmail}</span>
+                    </>
+                  )}
+                </>
+              ) : t('guest')}
             </div>
           </div>
         </div>

@@ -24,7 +24,8 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
   const { t } = useLanguage();
   const [amount, setAmount] = useState(editingExpense?.amount?.toString() || '');
   const [category, setCategory] = useState<Category>((editingExpense?.category as Category) || 'other');
-  const [payerId, setPayerId] = useState(editingExpense?.payer_member_id || members[0]?.id || '');
+  const currentUserMemberId = members.find(m => m.profile_id === user?.id)?.id;
+  const [payerId, setPayerId] = useState(editingExpense?.payer_member_id || currentUserMemberId || members[0]?.id || '');
   const [date, setDate] = useState(editingExpense?.date || getLocalDateString());
   const [note, setNote] = useState(editingExpense?.note || '');
   
