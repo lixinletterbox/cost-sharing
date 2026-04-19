@@ -18,11 +18,12 @@ import ExpenseForm from '../components/ExpenseForm';
 import MemberForm from '../components/MemberForm';
 import MemberEditModal from '../components/MemberEditModal';
 import { formatDisplayDate } from '../utils/dateUtils';
+import { formatAmount } from '../utils/numberUtils';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const navigate = useNavigate();
 
   const [event, setEvent] = useState<Event | null>(null);
@@ -245,7 +246,7 @@ export default function EventDetail() {
                       </div>
                       <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{ fontWeight: '800', fontSize: '1.125rem' }}>
-                          ${Number(expense.amount).toFixed(2)}
+                          ${formatAmount(Number(expense.amount), language)}
                         </div>
                         <div style={{ color: 'var(--text-dim)' }}>
                           {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -277,7 +278,7 @@ export default function EventDetail() {
                                     </span>
                                   </div>
                                   <div style={{ fontWeight: 600, color: 'var(--secondary)' }}>
-                                    ${share.toFixed(2)}
+                                    ${formatAmount(share, language)}
                                   </div>
                                 </div>
                               );
@@ -337,14 +338,14 @@ export default function EventDetail() {
                     <div>
                       <div style={{ fontWeight: 600 }}>{balance.name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                        {t('paid')}: ${balance.paid.toFixed(2)} / {t('share')}: ${balance.share.toFixed(2)}
+                        {t('paid')}: ${formatAmount(balance.paid, language)} / {t('share')}: ${formatAmount(balance.share, language)}
                       </div>
                     </div>
                     <div style={{
                       fontWeight: 800,
                       color: balance.net > 0 ? 'var(--secondary)' : balance.net < -0.01 ? 'var(--accent)' : 'inherit'
                     }}>
-                      {balance.net > 0 ? '+' : ''}${balance.net.toFixed(2)}
+                      {balance.net > 0 ? '+' : ''}${formatAmount(balance.net, language)}
                     </div>
                   </div>
                 ))}
@@ -366,7 +367,7 @@ export default function EventDetail() {
                       }}>
                         <div style={{ flex: 1, textAlign: 'right', fontWeight: 600 }}>{s.fromName}</div>
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: 800 }}>{t('pay')} ${s.amount.toFixed(2)}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: 800 }}>{t('pay')} ${formatAmount(s.amount, language)}</span>
                           <div style={{ height: '2px', width: '100%', background: 'var(--glass-border)', position: 'relative', marginTop: '4px' }}>
                             <div style={{ position: 'absolute', right: '-4px', top: '-4px', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderLeft: '8px solid var(--glass-border)' }}></div>
                           </div>

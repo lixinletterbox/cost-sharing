@@ -94,7 +94,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
     for (let c = range.s.c; c <= range.e.c; c++) {
       const ref = XLSX.utils.encode_cell({ r, c });
       if (ws[ref] && ws[ref].t === 'n') {
-        ws[ref].z = '0.00';
+        ws[ref].z = '#,##0.00';
       }
     }
   }
@@ -286,7 +286,7 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
             fill: { fgColor: { rgb: bgColor } },
             alignment: { horizontal: 'right' }
           };
-          if (c === 2) ws[ref].z = '0.00'; // format amount
+          if (c === 2) ws[ref].z = '#,##0.00'; // format amount
         }
       }
     });
