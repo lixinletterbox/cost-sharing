@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
-import { X, UserPlus, Search, AlertCircle, Shield } from 'lucide-react';
+import { X, UserPlus, Search, AlertCircle, Shield, Loader, Check } from 'lucide-react';
 
 interface MemberFormProps {
   eventId: string;
@@ -19,6 +19,35 @@ export default function MemberForm({ eventId, onClose, onRefresh }: MemberFormPr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [linkMode, setLinkMode] = useState<'guest' | 'user'>('guest');
+  const [lookupLoading, setLookupLoading] = useState(false);
+
+  // Auto-lookup user when email is entered
+  useEffect(() => {
+    if (linkMode === 'user' && email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      const lookupUser = async () => {
+        setLookupLoading(true);
+        try {
+          const { data, error: lookupError } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('email', email.trim().toLowerCase())
+            .maybeSingle();
+          
+          if (lookupError) throw lookupError;
+          if (data && data.full_name) {
+            setName(data.full_name);
+          }
+        } catch (err) {
+          console.error('Error looking up user:', err);
+        } finally {
+          setLookupLoading(false);
+        }
+      };
+
+      const timer = setTimeout(lookupUser, 500); // Debounce lookup
+      return () => clearTimeout(timer);
+    }
+  }, [email, linkMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,20 +58,21 @@ export default function MemberForm({ eventId, onClose, onRefresh }: MemberFormPr
       let profileId: string | undefined = undefined;
 
       if (linkMode === 'user' && email.trim()) {
-        const { data: profiles, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id, full_name')
           .eq('email', email.toLowerCase())
-          .limit(1);
+          .maybeSingle();
 
         if (profileError) throw profileError;
         
-        if (!profiles || profiles.length === 0) {
+        if (!profile) {
           throw new Error(t('userNotFound'));
         }
         
-        profileId = profiles[0].id;
-        if (!name.trim()) setName(profiles[0].full_name);
+        profileId = profile.id;
+        // If name was cleared, use the profile name
+        if (!name.trim()) setName(profile.full_name);
       }
 
       const { error: memberError } = await supabase
@@ -115,12 +145,18 @@ export default function MemberForm({ eventId, onClose, onRefresh }: MemberFormPr
                 <input 
                   type="email" 
                   className="input-field" 
-                  style={{ paddingLeft: '2.5rem' }} 
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }} 
                   placeholder="user@example.com" 
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                {lookupLoading && (
+                  <Loader size={16} className="animate-spin" style={{ position: 'absolute', right: '12px', top: '13px', color: 'var(--secondary)' }} />
+                )}
+                {!lookupLoading && name && email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+                  <Check size={16} style={{ position: 'absolute', right: '12px', top: '13px', color: 'var(--secondary)' }} />
+                )}
               </div>
             </div>
           )}
@@ -130,8 +166,8 @@ export default function MemberForm({ eventId, onClose, onRefresh }: MemberFormPr
             <input 
               type="text" 
               className="input-field" 
-              placeholder={linkMode === 'user' ? 'Optional (uses user name if empty)' : 'e.g. Grandma, Dad, Sam'} 
-              required={linkMode === 'guest'} 
+              placeholder="e.g. Grandma, Dad, Sam" 
+              required 
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
