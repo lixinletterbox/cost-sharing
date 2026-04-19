@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Lock, User as UserIcon } from 'lucide-react';
+import { Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 
 export default function Profile() {
   const { user, profile } = useAuth();
@@ -13,6 +13,8 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const isPasswordStrong = (pwd: string) => {
     const minLength = 8;
@@ -82,28 +84,68 @@ export default function Profile() {
         </h3>
         
         <form onSubmit={handleUpdatePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div className="input-group" style={{ marginBottom: 0 }}>
+          <div className="input-group" style={{ marginBottom: 0, position: 'relative' }}>
             <label className="input-label">{t('newPassword')}</label>
             <input 
-              type="password" 
+              type={showPassword ? 'text' : 'password'} 
               className="input-field" 
+              style={{ paddingRight: '2.5rem' }}
               placeholder="••••••••" 
               required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                top: '32px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-dim)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px'
+              }}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
-          <div className="input-group" style={{ marginBottom: 0 }}>
+          <div className="input-group" style={{ marginBottom: 0, position: 'relative' }}>
             <label className="input-label">{t('confirmNewPassword')}</label>
             <input 
-              type="password" 
+              type={showConfirmPassword ? 'text' : 'password'} 
               className="input-field" 
+              style={{ paddingRight: '2.5rem' }}
               placeholder="••••••••" 
               required 
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                top: '32px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-dim)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px'
+              }}
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           {error && <p style={{ color: 'var(--accent)', fontSize: '0.875rem' }}>{error}</p>}

@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogIn, UserPlus, Mail, Lock, User as UserIcon } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,6 +18,8 @@ export default function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -149,6 +151,7 @@ export default function Auth() {
           <AnimatePresence mode="wait">
             {!isLogin && !forgotPasswordMode && (
               <motion.div
+                key="fullName"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -190,6 +193,7 @@ export default function Auth() {
           <AnimatePresence>
             {!forgotPasswordMode && (
               <motion.div
+                key="password"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -214,14 +218,34 @@ export default function Auth() {
                 <div style={{ position: 'relative', marginTop: '0.5rem' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     className="input-field"
-                    style={{ paddingLeft: '2.5rem' }}
+                    style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                     placeholder="••••••••"
                     required={!forgotPasswordMode}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '10px',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-dim)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '4px',
+                      zIndex: 10
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -230,6 +254,7 @@ export default function Auth() {
           <AnimatePresence>
             {!isLogin && !forgotPasswordMode && (
               <motion.div
+                key="confirmPassword"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -239,14 +264,34 @@ export default function Auth() {
                 <div style={{ position: 'relative' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
                   <input
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     className="input-field"
-                    style={{ paddingLeft: '2.5rem' }}
+                    style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                     placeholder="••••••••"
                     required={!isLogin}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '10px',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-dim)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '4px',
+                      zIndex: 10
+                    }}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </motion.div>
             )}
