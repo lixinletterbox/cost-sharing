@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import type { Member } from '../types';
-import { X, Shield, AlertCircle, Save, User as UserIcon, Search, Check, Loader, Mail } from 'lucide-react';
+import { X, Shield, AlertCircle, Save, User as UserIcon, Search, Check, Loader, Mail, Trash2 } from 'lucide-react';
 import type { Profile } from '../types';
 
 interface MemberEditModalProps {
@@ -19,12 +19,10 @@ export default function MemberEditModal({ member, onClose, onRefresh }: MemberEd
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     if (member.profile_id) {
       const fetchEmail = async () => {
-        setProfileLoading(true);
         try {
           const { data, error: profileErr } = await supabase
             .from('profiles')
@@ -35,8 +33,6 @@ export default function MemberEditModal({ member, onClose, onRefresh }: MemberEd
           if (data) setRegisteredEmail(data.email);
         } catch (err) {
           console.error('Error fetching registered user email:', err);
-        } finally {
-          setProfileLoading(false);
         }
       };
       fetchEmail();
@@ -104,6 +100,42 @@ export default function MemberEditModal({ member, onClose, onRefresh }: MemberEd
         .eq('id', member.id);
 
       if (updateError) throw updateError;
+
+      onRefresh();
+      onClose();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(t('deleteMemberConfirm'))) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Check if member has paid for any expenses
+      const { data: expenses, error: expError } = await supabase
+        .from('expenses')
+        .select('id')
+        .eq('payer_member_id', member.id)
+        .limit(1);
+
+      if (expError) throw expError;
+
+      if (expenses && expenses.length > 0) {
+        throw new Error(t('cannotDeleteMemberWithExpenses'));
+      }
+
+      // 2. Delete the member
+      const { error: deleteError } = await supabase
+        .from('event_members')
+        .delete()
+        .eq('id', member.id);
+
+      if (deleteError) throw deleteError;
 
       onRefresh();
       onClose();
@@ -218,6 +250,19 @@ export default function MemberEditModal({ member, onClose, onRefresh }: MemberEd
             </button>
           </div>
         </form>
+
+        <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)' }}>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ width: '100%', color: 'var(--accent)', justifyContent: 'center' }}
+            onClick={handleDelete}
+            disabled={loading}
+          >
+            <Trash2 size={16} />
+            {t('delete')}
+          </button>
+        </div>
 
         {/* Link to Registered User (only for guests) */}
         {!member.profile_id && !foundProfile && (
