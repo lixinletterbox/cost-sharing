@@ -9,7 +9,7 @@ import {
   Plus, Users as UsersIcon, CreditCard, ChevronLeft,
   Settings, Trash2, Edit2, AlertCircle, TrendingUp, User as UserIcon,
   ChevronDown, ChevronUp, Download,
-  Plane, Hotel, Car, Fuel, CircleParking, Utensils, ShoppingBasket, Ticket, MoreHorizontal
+  Plane, Hotel, Car, Fuel, CircleParking, Utensils, ShoppingBasket, Ticket, MoreHorizontal, RefreshCw
 } from 'lucide-react';
 
 import { exportToExcel } from '../utils/ExportSvc';
@@ -20,6 +20,7 @@ import MemberForm from '../components/MemberForm';
 import MemberEditModal from '../components/MemberEditModal';
 import { formatDisplayDate } from '../utils/dateUtils';
 import { formatAmount, getCurrencySymbol } from '../utils/numberUtils';
+import { fetchExchangeRate } from '../utils/currencyApi';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -580,6 +581,20 @@ export default function EventDetail() {
                           }))}
                         />
                         <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', minWidth: '40px' }}>{editEventCurrency}</span>
+                        <button 
+                          type="button" 
+                          className="btn btn-ghost" 
+                          style={{ padding: '0.4rem', color: 'var(--text-dim)' }} 
+                          title="Refresh online rate"
+                          onClick={async () => {
+                            const rate = await fetchExchangeRate(code, editEventCurrency);
+                            if (rate !== null) {
+                              setEditExchangeRates(prev => ({ ...prev, [code]: String(rate) }));
+                            }
+                          }}
+                        >
+                          <RefreshCw size={16} />
+                        </button>
                         <button type="button" className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--text-dim)' }} onClick={() => {
                           setEditExchangeRates(prev => {
                             const next = { ...prev };
@@ -602,12 +617,25 @@ export default function EventDetail() {
                         <select
                           className="input-field"
                           value=""
-                          onChange={(e) => {
-                            if (!e.target.value) return;
+                          onChange={async (e) => {
+                            const newCurrency = e.target.value;
+                            if (!newCurrency) return;
+                            
                             setEditExchangeRates(prev => ({
                               ...prev,
-                              [e.target.value]: ''
+                              [newCurrency]: ''
                             }));
+                            
+                            const rate = await fetchExchangeRate(newCurrency, editEventCurrency);
+                            if (rate !== null) {
+                              setEditExchangeRates(prev => {
+                                // Only update if the user hasn't removed it or manually edited it while it was fetching
+                                if (newCurrency in prev && prev[newCurrency] === '') {
+                                  return { ...prev, [newCurrency]: String(rate) };
+                                }
+                                return prev;
+                              });
+                            }
                           }}
                         >
                           <option value="">+ {t('addExchangeRate' as any)}...</option>
