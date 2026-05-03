@@ -1,84 +1,114 @@
 import XLSX from 'xlsx-js-style';
 import type { Expense, ExpenseSplit, Member } from '../types';
-import { calculateBalances, suggestSettlements, calculateIndividualShares } from './engine';
+import { calculateBalances, suggestSettlements, calculateIndividualShares, convertToDefaultCurrency } from './engine';
 import { formatDisplayDate } from './dateUtils';
+import { getCurrencySymbol } from './numberUtils';
 
 interface ExportData {
   expenses: Expense[];
   splits: ExpenseSplit[];
   members: Member[];
   eventName: string;
+  defaultCurrency: string;
+  exchangeRates: Record<string, number>;
   t: (key: any) => string;
 }
 
-export const exportToExcel = ({ expenses, splits, members, eventName, t }: ExportData) => {
+export const exportToExcel = ({ expenses, splits, members, eventName, defaultCurrency, exchangeRates, t }: ExportData) => {
   const wb = XLSX.utils.book_new();
-  const fixedCols = 4;
+  const fixedCols = 6; // date, category, description, currency, exchange rate, amount
   const totalCols = fixedCols + members.length * 2;
 
   // Build header rows
   // Row 1: fixed col labels + member names spanning 2 cols each
   const headerRow1: (string | number)[] = [
-    t('date'), t('category'), t('descriptionLabel'), t('amount'),
+    t('date'), t('category'), t('descriptionLabel'), t('currency'), t('exchangeRate'), t('amount'),
     ...members.flatMap(m => [m.name, ''])
   ];
 
   // Row 2: empty for fixed cols (merged with row 1) + Paid/Share sub-headers
   const headerRow2: (string | number)[] = [
-    '', '', '', '',
+    '', '', '', '', '', '',
     ...members.flatMap(() => [t('paidBy'), t('share')])
   ];
 
   // Track totals
+  // Original-currency totals (for per-expense display columns)
   const memberPaidTotals: Record<string, number> = {};
   const memberShareTotals: Record<string, number> = {};
+  // Default-currency converted totals (for summary/balance footer rows)
+  const memberPaidTotalsConverted: Record<string, number> = {};
+  const memberShareTotalsConverted: Record<string, number> = {};
   members.forEach(m => {
     memberPaidTotals[m.id] = 0;
     memberShareTotals[m.id] = 0;
+    memberPaidTotalsConverted[m.id] = 0;
+    memberShareTotalsConverted[m.id] = 0;
   });
-  let grandTotal = 0;
+  let grandTotal = 0; // original currency (informational)
+  let grandTotalConverted = 0; // default currency
 
   // Build data rows
   const dataRows = expenses.map(exp => {
     const itemSplits = splits.filter(s => s.expense_id === exp.id);
     const amount = Number(exp.amount);
+    const convertedAmount = convertToDefaultCurrency(
+      amount,
+      exp.currency || defaultCurrency,
+      defaultCurrency,
+      exchangeRates
+    );
+    const rate = amount > 0 ? convertedAmount / amount : 1;
     grandTotal += amount;
+    grandTotalConverted += convertedAmount;
 
+    // Per-expense shares shown in original currency
     const individualShares = calculateIndividualShares(exp.id, amount, itemSplits);
+    // Per-expense shares converted to default currency (for footer totals)
+    const individualSharesConverted = calculateIndividualShares(exp.id, convertedAmount, itemSplits);
 
     const memberCols = members.flatMap(m => {
       const paid = m.id === exp.payer_member_id ? amount : 0;
+      const paidConverted = m.id === exp.payer_member_id ? convertedAmount : 0;
       memberPaidTotals[m.id] += paid;
+      memberPaidTotalsConverted[m.id] += paidConverted;
 
       const share = individualShares[m.id] || 0;
+      const shareConverted = individualSharesConverted[m.id] || 0;
       memberShareTotals[m.id] += share;
+      memberShareTotalsConverted[m.id] += shareConverted;
 
-      return [paid || '', share || ''];
+      return [
+        paidConverted ? Number(paidConverted.toFixed(2)) : '', 
+        shareConverted ? Number(shareConverted.toFixed(2)) : ''
+      ];
     });
 
     return [
       formatDisplayDate(exp.date),
       t(exp.category as any),
       exp.note || '',
+      exp.currency || defaultCurrency,
+      Number(rate.toFixed(6)),
       Number(amount.toFixed(2)),
       ...memberCols
     ];
   });
 
-  // Summary row
+  // Summary row — totals in default currency
   const summaryRow: (string | number)[] = [
-    '', '', t('summary'), Number(grandTotal.toFixed(2)),
+    '', '', t('summary'), defaultCurrency, '', Number(grandTotalConverted.toFixed(2)),
     ...members.flatMap(m => [
-      Number(memberPaidTotals[m.id].toFixed(2)),
-      Number(memberShareTotals[m.id].toFixed(2))
+      Number(memberPaidTotalsConverted[m.id].toFixed(2)),
+      Number(memberShareTotalsConverted[m.id].toFixed(2))
     ])
   ];
 
-  // Balance row (paid - share)
+  // Balance row (paid - share), all values in default currency
   const balanceRow: (string | number)[] = [
-    '', '', t('balance'), '',
+    '', '', t('balance'), defaultCurrency, '', '',
     ...members.flatMap(m => {
-      const diff = Number((memberPaidTotals[m.id] - memberShareTotals[m.id]).toFixed(2));
+      const diff = Number((memberPaidTotalsConverted[m.id] - memberShareTotalsConverted[m.id]).toFixed(2));
       return [diff, ''];
     })
   ];
@@ -88,13 +118,17 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
   const sheetData = [titleRow, headerRow1, headerRow2, ...dataRows, [], summaryRow, balanceRow];
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-  // Format all numeric amount cells to 2 decimal places
+  // Format all numeric amount cells
   const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
   for (let r = range.s.r; r <= range.e.r; r++) {
     for (let c = range.s.c; c <= range.e.c; c++) {
       const ref = XLSX.utils.encode_cell({ r, c });
       if (ws[ref] && ws[ref].t === 'n') {
-        ws[ref].z = '#,##0.00';
+        if (c === 4) {
+          ws[ref].z = '#,##0.0000'; // 4 decimal places for exchange rate
+        } else {
+          ws[ref].z = '#,##0.00';   // 2 decimal places for amounts
+        }
       }
     }
   }
@@ -234,15 +268,15 @@ export const exportToExcel = ({ expenses, splits, members, eventName, t }: Expor
   XLSX.utils.book_append_sheet(wb, ws, t('sheetExpenses'));
 
   // === SETTLEMENTS (appended to same sheet) ===
-  const balances = calculateBalances(expenses, splits, members);
+  const balances = calculateBalances(expenses, splits, members, defaultCurrency, exchangeRates);
   const settlements = suggestSettlements(balances);
 
   if (settlements.length > 0) {
     // Spacer
     XLSX.utils.sheet_add_aoa(ws, [[]], { origin: -1 });
 
-    // Settlement title row — merged across 3 cols
-    XLSX.utils.sheet_add_aoa(ws, [[t('settlementPlan')]], { origin: -1 });
+    // Settlement title row — include default currency label
+    XLSX.utils.sheet_add_aoa(ws, [[`${t('settlementPlan')} (${defaultCurrency} ${getCurrencySymbol(defaultCurrency)})`]], { origin: -1 });
     const titleRowIdx = XLSX.utils.decode_range(ws['!ref']!).e.r;
     ws['!merges']!.push({ s: { r: titleRowIdx, c: 0 }, e: { r: titleRowIdx, c: 2 } });
     const titleRef = XLSX.utils.encode_cell({ r: titleRowIdx, c: 0 });

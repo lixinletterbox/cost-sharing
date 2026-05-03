@@ -90,12 +90,35 @@ export function calculateIndividualShares(
 }
 
 /**
+ * Converts an amount from a source currency to the default currency.
+ * exchangeRates is a map of { [sourceCurrencyCode]: rateToDefaultCurrency }
+ * e.g. if defaultCurrency is USD and { EUR: 1.08 } means 1 EUR = 1.08 USD
+ */
+export function convertToDefaultCurrency(
+  amount: number,
+  sourceCurrency: string,
+  defaultCurrency: string,
+  exchangeRates: Record<string, number>
+): number {
+  if (sourceCurrency === defaultCurrency) return amount;
+  const rate = exchangeRates[sourceCurrency];
+  if (rate === undefined) {
+    console.warn(`No exchange rate found for ${sourceCurrency} -> ${defaultCurrency}. Treating as 1:1.`);
+    return amount;
+  }
+  return amount * rate;
+}
+
+/**
  * Calculates the total net balance for each member in an event.
+ * All amounts are converted to the event's default currency using the provided exchange rates.
  */
 export function calculateBalances(
   expenses: Expense[],
   splits: ExpenseSplit[],
-  members: Member[]
+  members: Member[],
+  defaultCurrency: string = 'USD',
+  exchangeRates: Record<string, number> = {}
 ): MemberBalance[] {
   const balances: Record<string, { paid: number; share: number }> = {};
 
@@ -104,19 +127,32 @@ export function calculateBalances(
     balances[m.id] = { paid: 0, share: 0 };
   });
 
-  // Calculate total paid by each member
+  // Calculate total paid by each member (converted to default currency)
   expenses.forEach(exp => {
     if (balances[exp.payer_member_id]) {
-      balances[exp.payer_member_id].paid += Number(exp.amount);
+      const convertedAmount = convertToDefaultCurrency(
+        Number(exp.amount),
+        exp.currency || defaultCurrency,
+        defaultCurrency,
+        exchangeRates
+      );
+      balances[exp.payer_member_id].paid += convertedAmount;
     }
   });
 
-  // Calculate total share for each member
+  // Calculate total share for each member (converted to default currency)
   expenses.forEach(exp => {
     const itemSplits = splits.filter(s => s.expense_id === exp.id);
     if (itemSplits.length === 0) return;
 
-    const shares = calculateIndividualShares(exp.id, Number(exp.amount), itemSplits);
+    const convertedAmount = convertToDefaultCurrency(
+      Number(exp.amount),
+      exp.currency || defaultCurrency,
+      defaultCurrency,
+      exchangeRates
+    );
+
+    const shares = calculateIndividualShares(exp.id, convertedAmount, itemSplits);
     
     Object.entries(shares).forEach(([memberId, share]) => {
       if (balances[memberId]) {

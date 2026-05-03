@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Event, Member, Expense, ExpenseSplit } from '../types';
+import { SUPPORTED_CURRENCIES } from '../types';
 import {
   Plus, Users as UsersIcon, CreditCard, ChevronLeft,
   Settings, Trash2, Edit2, AlertCircle, TrendingUp, User as UserIcon,
@@ -13,12 +14,12 @@ import {
 
 import { exportToExcel } from '../utils/ExportSvc';
 import type { MemberBalance, Settlement } from '../utils/engine';
-import { calculateBalances, suggestSettlements, calculateIndividualShares } from '../utils/engine';
+import { calculateBalances, suggestSettlements, calculateIndividualShares, convertToDefaultCurrency } from '../utils/engine';
 import ExpenseForm from '../components/ExpenseForm';
 import MemberForm from '../components/MemberForm';
 import MemberEditModal from '../components/MemberEditModal';
 import { formatDisplayDate } from '../utils/dateUtils';
-import { formatAmount } from '../utils/numberUtils';
+import { formatAmount, getCurrencySymbol } from '../utils/numberUtils';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -41,6 +42,8 @@ export default function EventDetail() {
   const [showEditEvent, setShowEditEvent] = useState(false);
   const [editEventName, setEditEventName] = useState('');
   const [editEventDesc, setEditEventDesc] = useState('');
+  const [editEventCurrency, setEditEventCurrency] = useState('USD');
+  const [editExchangeRates, setEditExchangeRates] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (id) {
@@ -71,7 +74,9 @@ export default function EventDetail() {
     }
   };
 
-  const balances: MemberBalance[] = calculateBalances(expenses, splits, members);
+  const defaultCurrency = event?.currency || 'USD';
+  const exchangeRates = event?.exchange_rates || {};
+  const balances: MemberBalance[] = calculateBalances(expenses, splits, members, defaultCurrency, exchangeRates);
   const settlements: Settlement[] = suggestSettlements(balances);
   const currentUserMember = members.find(m => m.profile_id === user?.id);
   const isAdmin = currentUserMember?.is_admin === true;
@@ -92,19 +97,43 @@ export default function EventDetail() {
     if (!event) return;
     setEditEventName(event.name);
     setEditEventDesc(event.description || '');
+    setEditEventCurrency(event.currency || 'USD');
+    // Convert stored rates (numbers) to strings for input fields
+    const ratesAsStr: Record<string, string> = {};
+    Object.entries(event.exchange_rates || {}).forEach(([code, rate]) => {
+      ratesAsStr[code] = String(rate);
+    });
+    setEditExchangeRates(ratesAsStr);
     setShowEditEvent(true);
   };
 
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!event || !editEventName.trim()) return;
+    // Convert rates from string inputs to numbers, strip invalid ones
+    const ratesAsNum: Record<string, number> = {};
+    Object.entries(editExchangeRates).forEach(([code, val]) => {
+      const parsed = parseFloat(val);
+      if (!isNaN(parsed) && parsed > 0) ratesAsNum[code] = parsed;
+    });
     try {
       const { error } = await supabase
         .from('events')
-        .update({ name: editEventName.trim(), description: editEventDesc.trim() || null })
+        .update({
+          name: editEventName.trim(),
+          description: editEventDesc.trim() || null,
+          currency: editEventCurrency,
+          exchange_rates: ratesAsNum
+        })
         .eq('id', event.id);
       if (error) throw error;
-      setEvent({ ...event, name: editEventName.trim(), description: editEventDesc.trim() || undefined });
+      setEvent({
+        ...event,
+        name: editEventName.trim(),
+        description: editEventDesc.trim() || undefined,
+        currency: editEventCurrency,
+        exchange_rates: ratesAsNum
+      });
       setShowEditEvent(false);
     } catch (err) {
       console.error('Error updating event:', err);
@@ -164,7 +193,7 @@ export default function EventDetail() {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             className="btn btn-ghost"
-            onClick={() => exportToExcel({ expenses, splits, members, eventName: event.name, t })}
+            onClick={() => exportToExcel({ expenses, splits, members, eventName: event.name, defaultCurrency, exchangeRates, t })}
             style={{ padding: '0.5rem 1rem' }}
           >
             <Download size={18} />
@@ -245,8 +274,13 @@ export default function EventDetail() {
                         </div>
                       </div>
                       <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={{ fontWeight: '800', fontSize: '1.125rem' }}>
-                          ${formatAmount(Number(expense.amount), language)}
+                        <div style={{ fontWeight: '800', fontSize: '1.125rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                          <div>{formatAmount(Number(expense.amount), language, expense.currency || defaultCurrency)}</div>
+                          {expense.currency && expense.currency !== defaultCurrency && (
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontWeight: 600, marginTop: '2px' }}>
+                              ({formatAmount(convertToDefaultCurrency(Number(expense.amount), expense.currency, defaultCurrency, exchangeRates), language, defaultCurrency)})
+                            </div>
+                          )}
                         </div>
                         <div style={{ color: 'var(--text-dim)' }}>
                           {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -277,8 +311,13 @@ export default function EventDetail() {
                                       w: {split.weight}
                                     </span>
                                   </div>
-                                  <div style={{ fontWeight: 600, color: 'var(--secondary)' }}>
-                                    ${formatAmount(share, language)}
+                                  <div style={{ fontWeight: 600, color: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                    <div>{formatAmount(share, language, expense.currency || defaultCurrency)}</div>
+                                    {expense.currency && expense.currency !== defaultCurrency && (
+                                      <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: 500, marginTop: '2px' }}>
+                                        ({formatAmount(convertToDefaultCurrency(share, expense.currency, defaultCurrency, exchangeRates), language, defaultCurrency)})
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -338,14 +377,14 @@ export default function EventDetail() {
                     <div>
                       <div style={{ fontWeight: 600 }}>{balance.name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                        {t('paid')}: ${formatAmount(balance.paid, language)} / {t('share')}: ${formatAmount(balance.share, language)}
+                        {t('paid')}: {formatAmount(balance.paid, language, defaultCurrency)} / {t('share')}: {formatAmount(balance.share, language, defaultCurrency)}
                       </div>
                     </div>
                     <div style={{
                       fontWeight: 800,
                       color: balance.net > 0 ? 'var(--secondary)' : balance.net < -0.01 ? 'var(--accent)' : 'inherit'
                     }}>
-                      {balance.net > 0 ? '+' : ''}${formatAmount(balance.net, language)}
+                      {balance.net > 0 ? '+' : ''}{formatAmount(balance.net, language, defaultCurrency)}
                     </div>
                   </div>
                 ))}
@@ -367,7 +406,7 @@ export default function EventDetail() {
                       }}>
                         <div style={{ flex: 1, textAlign: 'right', fontWeight: 600 }}>{s.fromName}</div>
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: 800 }}>{t('pay')} ${formatAmount(s.amount, language)}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: 800 }}>{t('pay')} {formatAmount(s.amount, language, defaultCurrency)}</span>
                           <div style={{ height: '2px', width: '100%', background: 'var(--glass-border)', position: 'relative', marginTop: '4px' }}>
                             <div style={{ position: 'absolute', right: '-4px', top: '-4px', borderTop: '5px solid transparent', borderBottom: '5px solid transparent', borderLeft: '8px solid var(--glass-border)' }}></div>
                           </div>
@@ -436,6 +475,7 @@ export default function EventDetail() {
       {showExpenseForm && (
         <ExpenseForm
           eventId={id!}
+          eventCurrency={defaultCurrency}
           members={members}
           editingExpense={editingExpense}
           onClose={() => { setShowExpenseForm(false); setEditingExpense(undefined); }}
@@ -464,7 +504,7 @@ export default function EventDetail() {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
         }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '450px' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h2 style={{ marginBottom: '1.5rem' }}>{t('editEvent')}</h2>
             <form onSubmit={handleSaveEvent}>
               <div className="input-group">
@@ -487,6 +527,102 @@ export default function EventDetail() {
                   onChange={(e) => setEditEventDesc(e.target.value)}
                 />
               </div>
+              <div className="input-group">
+                <label className="input-label">{t('defaultCurrency')}</label>
+                <select
+                  className="input-field"
+                  value={editEventCurrency}
+                  onChange={(e) => {
+                    setEditEventCurrency(e.target.value);
+                    // Remove exchange rate entry for the new default currency if present
+                    setEditExchangeRates(prev => {
+                      const next = { ...prev };
+                      delete next[e.target.value];
+                      return next;
+                    });
+                  }}
+                >
+                  {SUPPORTED_CURRENCIES.map(c => (
+                    <option key={c.code} value={c.code}>
+                      {c.symbol} {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Exchange Rates section */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
+                  {t('exchangeRates')} <span style={{ color: 'var(--text-dim)', fontWeight: 400, fontSize: '0.8rem' }}>({t('optional')})</span>
+                </label>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '0.75rem' }}>
+                  {t('exchangeRateHint')} {editEventCurrency} ({getCurrencySymbol(editEventCurrency)})
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '0.5rem', padding: '0.75rem' }}>
+                  {Object.keys(editExchangeRates).map(code => {
+                    const c = SUPPORTED_CURRENCIES.find(curr => curr.code === code);
+                    if (!c) return null;
+                    return (
+                      <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ minWidth: '80px', fontWeight: 600 }}>{c.symbol} {code}</span>
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>=</span>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          className="input-field"
+                          style={{ flex: 1, padding: '0.4rem 0.6rem' }}
+                          placeholder={t('exchangeRatePlaceholder')}
+                          value={editExchangeRates[code]}
+                          onChange={(e) => setEditExchangeRates(prev => ({
+                            ...prev,
+                            [code]: e.target.value
+                          }))}
+                        />
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', minWidth: '40px' }}>{editEventCurrency}</span>
+                        <button type="button" className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--text-dim)' }} onClick={() => {
+                          setEditExchangeRates(prev => {
+                            const next = { ...prev };
+                            delete next[code];
+                            return next;
+                          });
+                        }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Dropdown to add a new currency */}
+                  {(() => {
+                    const availableCurrencies = SUPPORTED_CURRENCIES.filter(c => c.code !== editEventCurrency && !(c.code in editExchangeRates));
+                    if (availableCurrencies.length === 0) return null;
+                    return (
+                      <div style={{ marginTop: Object.keys(editExchangeRates).length > 0 ? '0.5rem' : '0' }}>
+                        <select
+                          className="input-field"
+                          value=""
+                          onChange={(e) => {
+                            if (!e.target.value) return;
+                            setEditExchangeRates(prev => ({
+                              ...prev,
+                              [e.target.value]: ''
+                            }));
+                          }}
+                        >
+                          <option value="">+ {t('addExchangeRate' as any)}...</option>
+                          {availableCurrencies.map(c => (
+                            <option key={c.code} value={c.code}>
+                              {c.symbol} {c.code} — {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setShowEditEvent(false)}>
                   {t('cancel')}

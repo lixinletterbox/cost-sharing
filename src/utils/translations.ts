@@ -88,7 +88,14 @@ export const translations = {
 
     // Form
     descriptionLabel: 'Description',
-    amount: 'Amount ($)',
+    amount: 'Amount',
+    currency: 'Currency',
+    defaultCurrency: 'Default Currency',
+    exchangeRates: 'Exchange Rates',
+    exchangeRate: 'Exchange Rate',
+    exchangeRateHint: 'How much 1 unit of each currency equals in',
+    exchangeRatePlaceholder: 'Rate (e.g. 1.08)',
+    addExchangeRate: 'Add Exchange Rate',
     category: 'Category',
     payer: 'Payer',
     payee: 'Payee',
@@ -299,7 +306,14 @@ export const translations = {
 
     // Form
     descriptionLabel: '描述',
-    amount: '金额 ($)',
+    amount: '金额',
+    currency: '货币',
+    defaultCurrency: '默认货币',
+    exchangeRates: '汇率',
+    exchangeRate: '汇率',
+    exchangeRateHint: '1单位货币等于多少',
+    exchangeRatePlaceholder: '汇率（例：1.08）',
+    addExchangeRate: '添加汇率',
     category: '类别',
     payer: '付款人',
     payee: '收款人',

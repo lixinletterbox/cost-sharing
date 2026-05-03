@@ -3,12 +3,14 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Member, Expense, Category } from '../types';
+import { SUPPORTED_CURRENCIES } from '../types';
 import { X, Save, AlertCircle, Plane, Hotel, Car, Fuel, CircleParking, Utensils, ShoppingBasket, Ticket, MoreHorizontal } from 'lucide-react';
 
 import { getLocalDateString } from '../utils/dateUtils';
 
 interface ExpenseFormProps {
   eventId: string;
+  eventCurrency: string;
   members: Member[];
   editingExpense?: Expense;
   onClose: () => void;
@@ -19,10 +21,11 @@ const CATEGORIES: Category[] = [
   'flight', 'hotel', 'rental car', 'gas', 'parking', 'restaurant', 'grocery', 'ticket', 'other'
 ];
 
-export default function ExpenseForm({ eventId, members, editingExpense, onClose, onRefresh }: ExpenseFormProps) {
+export default function ExpenseForm({ eventId, eventCurrency, members, editingExpense, onClose, onRefresh }: ExpenseFormProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [amount, setAmount] = useState(editingExpense?.amount?.toString() || '');
+  const [currency, setCurrency] = useState(editingExpense?.currency || eventCurrency || 'USD');
   const [category, setCategory] = useState<Category>((editingExpense?.category as Category) || 'other');
   const currentUserMemberId = members.find(m => m.profile_id === user?.id)?.id;
   const [payerId, setPayerId] = useState(editingExpense?.payer_member_id || currentUserMemberId || members[0]?.id || '');
@@ -112,6 +115,7 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
           .from('expenses')
           .update({
             amount: Number(amount),
+            currency,
             category,
             payer_member_id: payerId,
             date,
@@ -127,6 +131,7 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
           .insert({
             event_id: eventId,
             amount: Number(amount),
+            currency,
             category,
             payer_member_id: payerId,
             date,
@@ -187,6 +192,21 @@ export default function ExpenseForm({ eventId, members, editingExpense, onClose,
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">{t('currency')}</label>
+              <select
+                className="input-field"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+              >
+                {SUPPORTED_CURRENCIES.map(c => (
+                  <option key={c.code} value={c.code}>
+                    {c.symbol} {c.code} — {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="input-group">

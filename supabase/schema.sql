@@ -1,5 +1,14 @@
 -- Supabase Schema for TripSplit (Cost Sharing)
 
+-- =====================================================================
+-- MIGRATION: Run these if you already have an existing database
+-- (skip if doing a fresh install / full reset below)
+-- =====================================================================
+-- ALTER TABLE events ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'USD' NOT NULL;
+-- ALTER TABLE events ADD COLUMN IF NOT EXISTS exchange_rates JSONB DEFAULT '{}'::jsonb NOT NULL;
+-- ALTER TABLE expenses ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'USD' NOT NULL;
+-- =====================================================================
+
 -- RESET DATABASE (Optional: Uncomment to wipe and restart)
 DROP TABLE IF EXISTS expense_splits CASCADE;
 DROP TABLE IF EXISTS expenses CASCADE;
@@ -41,6 +50,8 @@ CREATE TABLE events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
+  currency TEXT DEFAULT 'USD' NOT NULL,
+  exchange_rates JSONB DEFAULT '{}' NOT NULL, -- e.g. {"EUR": 0.93} means 1 EUR = 0.93 USD (when default is USD)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   created_by UUID REFERENCES profiles(id) NOT NULL
 );
@@ -66,6 +77,7 @@ CREATE TABLE expenses (
   event_id UUID REFERENCES events(id) ON DELETE CASCADE NOT NULL,
   description TEXT NOT NULL,
   amount NUMERIC NOT NULL,
+  currency TEXT DEFAULT 'USD' NOT NULL, -- the currency this expense was recorded in
   category TEXT NOT NULL,
   payer_member_id UUID REFERENCES event_members(id) NOT NULL,
   date DATE DEFAULT CURRENT_DATE NOT NULL,

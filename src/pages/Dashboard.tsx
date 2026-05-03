@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Event } from '../types';
+import { SUPPORTED_CURRENCIES } from '../types';
 import { Link } from 'react-router-dom';
 import { Plus, Calendar, ChevronRight, AlertCircle } from 'lucide-react';
 
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [newEventName, setNewEventName] = useState('');
   const [newEventDescription, setNewEventDescription] = useState('');
+  const [newEventCurrency, setNewEventCurrency] = useState('USD');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,6 +50,8 @@ export default function Dashboard() {
         .insert({
           name: newEventName,
           description: newEventDescription,
+          currency: newEventCurrency,
+          exchange_rates: {},
           created_by: user.id
         })
         .select()
@@ -71,6 +75,7 @@ export default function Dashboard() {
       setShowModal(false);
       setNewEventName('');
       setNewEventDescription('');
+      setNewEventCurrency('USD');
     } catch (err: any) {
       console.error('Error creating event:', err);
       setError(err.message || 'Failed to create event. Please check your connection or permissions.');
@@ -122,6 +127,11 @@ export default function Dashboard() {
                     <Calendar size={12} />
                     {new Date(event.created_at).toLocaleDateString()}
                   </div>
+                  {event.currency && event.currency !== 'USD' && (
+                    <div className="badge badge-purple" style={{ fontSize: '0.75rem' }}>
+                      {event.currency}
+                    </div>
+                  )}
                 </div>
               </div>
             </Link>
@@ -158,6 +168,20 @@ export default function Dashboard() {
                   value={newEventDescription}
                   onChange={(e) => setNewEventDescription(e.target.value)}
                 />
+              </div>
+              <div className="input-group">
+                <label className="input-label">{t('defaultCurrency')}</label>
+                <select
+                  className="input-field"
+                  value={newEventCurrency}
+                  onChange={(e) => setNewEventCurrency(e.target.value)}
+                >
+                  {SUPPORTED_CURRENCIES.map(c => (
+                    <option key={c.code} value={c.code}>
+                      {c.symbol} {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {error && (
