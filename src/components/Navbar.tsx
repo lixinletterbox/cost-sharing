@@ -13,9 +13,11 @@ export default function Navbar() {
     navigate('/auth');
   };
 
-  const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'zh' : 'en');
-  };
+  const languages = [
+    { code: 'en', flagCode: 'us', title: 'English' },
+    { code: 'zh', flagCode: 'cn', title: '中文' },
+    { code: 'ja', flagCode: 'jp', title: '日本語' }
+  ] as const;
 
   return (
     <nav className="container" style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '2rem' }}>
@@ -29,14 +31,36 @@ export default function Navbar() {
             {t('contactUs')}
           </Link>
           
-          <button 
-            onClick={toggleLanguage} 
-            className="btn btn-ghost" 
-            style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem', gap: '0.4rem' }}
-          >
-            <Globe size={14} />
-            {language === 'en' ? '中文' : 'EN'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'var(--glass-bg)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--glass-border)' }}>
+            <Globe size={14} style={{ color: 'var(--text-dim)', margin: '0 0.25rem' }} />
+            {languages.map(lang => (
+              <button
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
+                title={lang.title}
+                style={{
+                  background: language === lang.code ? 'var(--primary-main)' : 'transparent',
+                  border: 'none',
+                  padding: '0.35rem 0.5rem',
+                  borderRadius: '0.25rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: language === lang.code ? 1 : 0.6
+                }}
+              >
+                <img 
+                  src={`https://flagcdn.com/w20/${lang.flagCode}.png`} 
+                  srcSet={`https://flagcdn.com/w40/${lang.flagCode}.png 2x`}
+                  width="20" 
+                  alt={lang.title} 
+                  style={{ borderRadius: '2px', display: 'block' }}
+                />
+              </button>
+            ))}
+          </div>
 
           {user && (
             <>
