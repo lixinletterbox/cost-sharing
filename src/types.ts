@@ -55,18 +55,46 @@ export type Category =
   | 'other';
 
 export const SUPPORTED_CURRENCIES = [
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
-  { code: 'JPY', symbol: 'JP¥', name: 'Japanese Yen' },
-  { code: 'CNY', symbol: 'CN¥', name: 'Chinese Yuan' },
-  { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar' },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
-  { code: 'CHF', symbol: 'Fr', name: 'Swiss Franc' },
-  { code: 'KRW', symbol: '₩', name: 'South Korean Won' },
-  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' },
-  { code: 'MXN', symbol: 'MX$', name: 'Mexican Peso' },
-  { code: 'THB', symbol: '฿', name: 'Thai Baht' },
+  { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+  { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+  { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+  { code: 'JPY', symbol: 'JP¥', name: 'Japanese Yen', flag: '🇯🇵' },
+  { code: 'CNY', symbol: 'CN¥', name: 'Chinese Yuan', flag: '🇨🇳' },
+  { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar', flag: '🇨🇦' },
+  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
+  { code: 'CHF', symbol: 'Fr', name: 'Swiss Franc', flag: '🇨🇭' },
+  { code: 'KRW', symbol: '₩', name: 'South Korean Won', flag: '🇰🇷' },
+  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', flag: '🇸🇬' },
+  { code: 'MXN', symbol: 'MX$', name: 'Mexican Peso', flag: '🇲🇽' },
+  { code: 'THB', symbol: '฿', name: 'Thai Baht', flag: '🇹🇭' },
 ] as const;
 
 export type CurrencyCode = typeof SUPPORTED_CURRENCIES[number]['code'];
+
+export type EventRequest = {
+  id: string;
+  event_id: string;
+  profile_id: string;
+  status: 'pending' | 'approved' | 'denied';
+  type: 'join_request' | 'invitation' | 'guest_link';
+  alias?: string | null;
+  message?: string | null;
+  guest_member_id?: string | null;
+  created_at: string;
+  created_by: string;
+  resolved_at?: string | null;
+};
+
+export type Notification = {
+  id: string;
+  recipient_id: string;
+  type: string;
+  title: string;
+  message?: string;
+  is_read: boolean;
+  event_request_id?: string | null;
+  event_request?: EventRequest | null;
+  event_id?: string | null;
+  event?: { id: string; name: string } | null;
+  created_at: string;
+};

@@ -9,7 +9,7 @@ import {
   Plus, Users as UsersIcon, CreditCard, ChevronLeft,
   Settings, Trash2, Edit2, AlertCircle, TrendingUp, User as UserIcon,
   ChevronDown, ChevronUp, Download,
-  Plane, Hotel, Car, Fuel, CircleParking, Utensils, ShoppingBasket, Ticket, MoreHorizontal, RefreshCw
+  Plane, Hotel, Car, Fuel, CircleParking, Utensils, ShoppingBasket, Ticket, MoreHorizontal, MoreVertical, RefreshCw
 } from 'lucide-react';
 
 import { exportToExcel } from '../utils/ExportSvc';
@@ -45,6 +45,7 @@ export default function EventDetail() {
   const [editEventDesc, setEditEventDesc] = useState('');
   const [editEventCurrency, setEditEventCurrency] = useState('USD');
   const [editExchangeRates, setEditExchangeRates] = useState<Record<string, string>>({});
+  const [openMenuCurrency, setOpenMenuCurrency] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -545,7 +546,7 @@ export default function EventDetail() {
                 >
                   {SUPPORTED_CURRENCIES.map(c => (
                     <option key={c.code} value={c.code}>
-                      {c.symbol} {c.code} — {c.name}
+                      {c.flag} {c.code} — {t(c.code as any)}
                     </option>
                   ))}
                 </select>
@@ -564,15 +565,17 @@ export default function EventDetail() {
                     const c = SUPPORTED_CURRENCIES.find(curr => curr.code === code);
                     if (!c) return null;
                     return (
-                      <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span style={{ minWidth: '80px', fontWeight: 600 }}>{c.symbol} {code}</span>
+                      <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}>
+                        <span style={{ minWidth: '35px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} title={`${c.name} (${c.code})`}>
+                          <span style={{ fontSize: '1.4rem' }}>{c.flag}</span>
+                        </span>
                         <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>=</span>
                         <input
                           type="number"
                           step="any"
                           min="0"
                           className="input-field"
-                          style={{ flex: 1, padding: '0.4rem 0.6rem' }}
+                          style={{ flex: 1, padding: '0.4rem 0.6rem', minWidth: '60px' }}
                           placeholder={t('exchangeRatePlaceholder')}
                           value={editExchangeRates[code]}
                           onChange={(e) => setEditExchangeRates(prev => ({
@@ -580,34 +583,119 @@ export default function EventDetail() {
                             [code]: e.target.value
                           }))}
                         />
-                        <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', minWidth: '40px' }}>{editEventCurrency}</span>
-                        <button 
-                          type="button" 
-                          className="btn btn-ghost" 
-                          style={{ padding: '0.4rem', color: 'var(--text-dim)' }} 
-                          title="Refresh online rate"
-                          onClick={async () => {
-                            const rate = await fetchExchangeRate(code, editEventCurrency);
-                            if (rate !== null) {
-                              setEditExchangeRates(prev => ({ ...prev, [code]: String(rate) }));
-                            }
-                          }}
-                        >
-                          <RefreshCw size={16} />
-                        </button>
-                        <button type="button" className="btn btn-ghost" style={{ padding: '0.4rem', color: 'var(--text-dim)' }} onClick={() => {
-                          setEditExchangeRates(prev => {
-                            const next = { ...prev };
-                            delete next[code];
-                            return next;
-                          });
-                        }}>
-                          <Trash2 size={16} />
-                        </button>
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', minWidth: '35px' }}>{editEventCurrency}</span>
+                        
+                        {/* Action Menu (Refresh / Delete combined) */}
+                        <div style={{ position: 'relative' }}>
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            style={{ padding: '0.4rem', color: 'var(--text-dim)' }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuCurrency(openMenuCurrency === code ? null : code);
+                            }}
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                          
+                          {openMenuCurrency === code && (
+                            <>
+                              <div
+                                style={{
+                                  position: 'fixed',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  zIndex: 10,
+                                  background: 'transparent'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuCurrency(null);
+                                }}
+                              />
+                              <div style={{
+                                position: 'absolute',
+                                right: 0,
+                                top: '100%',
+                                marginTop: '4px',
+                                background: 'var(--bg-deep, #121214)',
+                                border: '1px solid var(--glass-border, rgba(255,255,255,0.1))',
+                                borderRadius: '0.375rem',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                                zIndex: 11,
+                                minWidth: '120px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden'
+                              }}>
+                                <button
+                                  type="button"
+                                  className="btn btn-ghost"
+                                  style={{
+                                    padding: '0.6rem 0.8rem',
+                                    fontSize: '0.85rem',
+                                    justifyContent: 'flex-start',
+                                    width: '100%',
+                                    borderRadius: 0,
+                                    border: 'none',
+                                    color: 'var(--text, #fff)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    textAlign: 'left'
+                                  }}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuCurrency(null);
+                                    const rate = await fetchExchangeRate(code, editEventCurrency);
+                                    if (rate !== null) {
+                                      setEditExchangeRates(prev => ({ ...prev, [code]: String(rate) }));
+                                    }
+                                  }}
+                                >
+                                  <RefreshCw size={14} />
+                                  <span>{t('refresh')}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-ghost"
+                                  style={{
+                                    padding: '0.6rem 0.8rem',
+                                    fontSize: '0.85rem',
+                                    justifyContent: 'flex-start',
+                                    width: '100%',
+                                    borderRadius: 0,
+                                    border: 'none',
+                                    color: 'var(--accent, #ef4444)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    textAlign: 'left'
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuCurrency(null);
+                                    setEditExchangeRates(prev => {
+                                      const next = { ...prev };
+                                      delete next[code];
+                                      return next;
+                                    });
+                                  }}
+                                >
+                                  <Trash2 size={14} />
+                                  <span>{t('delete')}</span>
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
-                  
+
                   {/* Dropdown to add a new currency */}
                   {(() => {
                     const availableCurrencies = SUPPORTED_CURRENCIES.filter(c => c.code !== editEventCurrency && !(c.code in editExchangeRates));
@@ -620,12 +708,12 @@ export default function EventDetail() {
                           onChange={async (e) => {
                             const newCurrency = e.target.value;
                             if (!newCurrency) return;
-                            
+
                             setEditExchangeRates(prev => ({
                               ...prev,
                               [newCurrency]: ''
                             }));
-                            
+
                             const rate = await fetchExchangeRate(newCurrency, editEventCurrency);
                             if (rate !== null) {
                               setEditExchangeRates(prev => {
@@ -639,11 +727,11 @@ export default function EventDetail() {
                           }}
                         >
                           <option value="">+ {t('addExchangeRate' as any)}...</option>
-                          {availableCurrencies.map(c => (
-                            <option key={c.code} value={c.code}>
-                              {c.symbol} {c.code} — {c.name}
-                            </option>
-                          ))}
+                            {availableCurrencies.map(c => (
+                              <option key={c.code} value={c.code}>
+                                {c.flag} {c.code} — {t(c.code as any)}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     );

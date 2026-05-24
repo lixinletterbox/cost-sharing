@@ -203,7 +203,7 @@ export default function ExpenseForm({ eventId, eventCurrency, members, editingEx
               >
                 {SUPPORTED_CURRENCIES.map(c => (
                   <option key={c.code} value={c.code}>
-                    {c.symbol} {c.code} — {c.name}
+                    {c.flag} {c.code} — {t(c.code as any)}
                   </option>
                 ))}
               </select>

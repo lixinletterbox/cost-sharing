@@ -79,6 +79,7 @@ export const translations = {
     share: 'Share',
     edit: 'Edit',
     delete: 'Delete',
+    refresh: 'Refresh',
     exportToExcel: 'Export to Excel',
 
     // Header Labels (for Excel)
@@ -216,6 +217,20 @@ export const translations = {
     sendMessage: 'Send Message',
     messageSent: 'Message Sent Successfully!',
     messageError: 'Failed to send message. Please try again.',
+
+    // Currencies
+    USD: 'US Dollar',
+    EUR: 'Euro',
+    GBP: 'British Pound',
+    JPY: 'Japanese Yen',
+    CNY: 'Chinese Yuan',
+    CAD: 'Canadian Dollar',
+    AUD: 'Australian Dollar',
+    CHF: 'Swiss Franc',
+    KRW: 'South Korean Won',
+    SGD: 'Singapore Dollar',
+    MXN: 'Mexican Peso',
+    THB: 'Thai Baht',
   },
   zh: {
     // Auth
@@ -297,6 +312,7 @@ export const translations = {
     share: '分摊',
     edit: '编辑',
     delete: '删除',
+    refresh: '刷新',
     exportToExcel: '导出至Excel',
 
     // Header Labels (for Excel)
@@ -433,6 +449,20 @@ export const translations = {
     sendMessage: '发送信息',
     messageSent: '留言发送成功！',
     messageError: '留言发送失败，请重试。',
+
+    // Currencies
+    USD: '美元',
+    EUR: '欧元',
+    GBP: '英镑',
+    JPY: '日元',
+    CNY: '人民币',
+    CAD: '加元',
+    AUD: '澳元',
+    CHF: '瑞士法郎',
+    KRW: '韩元',
+    SGD: '新加坡元',
+    MXN: '墨西哥比索',
+    THB: '泰铢',
   },
   ja: {
     // Auth
@@ -514,6 +544,7 @@ export const translations = {
     share: '負担',
     edit: '編集',
     delete: '削除',
+    refresh: '更新',
     exportToExcel: 'Excelへエクスポート',
 
     // Header Labels (for Excel)
@@ -651,6 +682,20 @@ export const translations = {
     sendMessage: 'メッセージを送信',
     messageSent: 'メッセージが正常に送信されました！',
     messageError: 'メッセージの送信に失敗しました。もう一度お試しください。',
+
+    // Currencies
+    USD: '米ドル',
+    EUR: 'ユーロ',
+    GBP: '英ポンド',
+    JPY: '日本円',
+    CNY: '人民元',
+    CAD: 'カナダドル',
+    AUD: '豪ドル',
+    CHF: 'スイスフラン',
+    KRW: '韓国ウォン',
+    SGD: 'シンガポールドル',
+    MXN: 'メキシコペソ',
+    THB: 'タイバーツ',
   }
 };
 
