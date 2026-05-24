@@ -162,55 +162,63 @@ export default function EventDetail() {
 
   return (
     <div className="animate-fade">
-      <header style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button onClick={() => navigate('/')} className="btn btn-ghost" style={{ padding: '0.5rem' }}>
+      <header style={{ marginBottom: '2rem', display: 'block' }}>
+        {/* Row 1: Back + Event Name + Edit */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/')} className="btn btn-ghost" style={{ padding: '0.4rem', flexShrink: 0, width: 'auto' }}>
             <ChevronLeft size={20} />
           </button>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <h1 style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{event.name}</h1>
-              {isAdmin && (
-                <button
-                  className="btn btn-ghost"
-                  style={{ padding: '0.35rem' }}
-                  onClick={handleEditEvent}
-                  title={t('editEvent')}
-                >
-                  <Edit2 size={16} />
-                </button>
-              )}
-            </div>
-            {event.description && (
-              <p style={{ color: 'var(--text-dim)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                {event.description}
-              </p>
-            )}
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.875rem' }}>
-              <UsersIcon size={14} /> {members.length} {t('members')} • <CreditCard size={14} /> {expenses.length} {t('expenses')}
-            </p>
-          </div>
+          <h1 style={{ fontSize: '1.5rem', margin: 0, flex: 1, minWidth: 0, wordBreak: 'break-word' }}>{event.name}</h1>
+          {isAdmin && (
+            <button
+              className="btn btn-ghost"
+              style={{ padding: '0.35rem', flexShrink: 0, width: 'auto' }}
+              onClick={handleEditEvent}
+              title={t('editEvent')}
+            >
+              <Edit2 size={16} />
+            </button>
+          )}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        {/* Row 2: Description + Members/Expenses meta */}
+        <div style={{ paddingLeft: '2.5rem' }}>
+          {event.description && (
+            <p style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginBottom: '0.3rem' }}>
+              {event.description}
+            </p>
+          )}
+          <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <UsersIcon size={13} /> {members.length} {t('members')}
+            <span style={{ opacity: 0.4 }}>•</span>
+            <CreditCard size={13} /> {expenses.length} {t('expenses')}
+          </p>
+        </div>
+
+        {/* Row 3: Action buttons */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.85rem', flexWrap: 'wrap' }}>
           <button
             className="btn btn-ghost"
             onClick={() => exportToExcel({ expenses, splits, members, eventName: event.name, defaultCurrency, exchangeRates, t })}
-            style={{ padding: '0.5rem 1rem' }}
+            style={{ padding: '0.5rem 0.9rem', fontSize: '0.85rem', flex: '1 1 auto' }}
           >
-            <Download size={18} />
-            <span className="hide-mobile">{t('exportToExcel')}</span>
+            <Download size={16} />
+            <span>{t('exportToExcel')}</span>
           </button>
           {activeTab === 'expenses' && (
-            <button className="btn btn-primary" onClick={() => { setEditingExpense(undefined); setShowExpenseForm(true); }}>
-              <Plus size={20} />
+            <button
+              className="btn btn-primary"
+              style={{ padding: '0.5rem 0.9rem', fontSize: '0.85rem', flex: '1 1 auto' }}
+              onClick={() => { setEditingExpense(undefined); setShowExpenseForm(true); }}
+            >
+              <Plus size={18} />
               {t('addExpense')}
             </button>
           )}
         </div>
       </header>
 
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '2rem', paddingBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '2rem', paddingBottom: '0.5rem', overflowX: 'auto' }}>
         {[
           { id: 'expenses', label: t('expenses'), icon: CreditCard },
           { id: 'balances', label: t('balances'), icon: TrendingUp },
@@ -220,9 +228,9 @@ export default function EventDetail() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ padding: '0.5rem 1rem', border: 'none' }}
+            style={{ padding: '0.5rem 0.8rem', border: 'none', flex: '1 1 0', whiteSpace: 'nowrap', width: 'auto', fontSize: '0.875rem' }}
           >
-            <tab.icon size={18} />
+            <tab.icon size={16} />
             {tab.label}
           </button>
         ))}
